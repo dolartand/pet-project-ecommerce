@@ -1,0 +1,1692 @@
+openapi: 3.0.0
+info:
+  title: E-commerce
+  description: |
+    REST API для интернет-магазина с поддержкой:
+    - Управления каталогом товаров и категорий
+    - Системы заказов с управлением складом
+    - Корзины покупок
+    - Аутентификации пользователей
+    - Системы отзывов и рейтингов
+    
+    ## Аутентификация
+    API использует JWT токены. Для доступа к защищенным endpoints необходимо передавать токен в заголовке:
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+    
+    ## Пагинация
+    Все endpoint'ы с множественными результатами поддерживают пагинацию:
+    - `page` - номер страницы
+    
+    - `size` - размер страницы (по умолчанию 20)
+    
+  version: 0.0.1
+
+servers:
+  - url: http://localhost:8080/api
+    description: Development server
+  - url: https://api.ecommerce.example.com/api
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT токен для аутентификации
+
+  schemas:
+    # Базовые типы
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: string
+          description: Уникальный код ошибки
+          example: "PRODUCT_NOT_FOUND"
+        message:
+          type: string
+          description: Человекочитаемое описание ошибки
+          example: "Товар с ID 123 не найден"
+        timestamp:
+          type: string
+          format: date-time
+          description: Время возникновения ошибки
+          example: "2024-01-15T10:30:00Z"
+        validationErrors:
+          type: object
+          additionalProperties:
+            type: string
+          description: Детали ошибок валидации
+          example:
+            email: "Некорректный формат email"
+            password: "Пароль должен содержать минимум 8 символов"
+
+    PageInfo:
+      type: object
+      required:
+        - page
+        - size
+        - totalElements
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 0
+          description: Текущая страница
+          example: 0
+        size:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Размер страницы
+          example: 20
+        totalElements:
+          type: integer
+          minimum: 0
+          description: Общее количество элементов
+          example: 150
+        totalPages:
+          type: integer
+          minimum: 0
+          description: Общее количество страниц
+          example: 8
+
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - firstName
+        - lastName
+        - role
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор пользователя
+          example: 1
+        email:
+          type: string
+          format: email
+          description: Email пользователя
+          example: "john.doe@example.com"
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Имя пользователя
+          example: "Джон"
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Фамилия пользователя
+          example: "Доу"
+        role:
+          type: string
+          enum: [USER, ADMIN]
+          description: Роль пользователя
+          example: "USER"
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата регистрации
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Дата последнего обновления
+          example: "2024-01-15T10:30:00Z"
+
+    UsersPage:
+      type: object
+      required:
+        - content
+        - page
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    Category:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор категории
+          example: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Название категории
+          example: "Смартфоны"
+        description:
+          type: string
+          maxLength: 500
+          description: Описание категории
+          example: "Мобильные телефоны различных брендов"
+        parentId:
+          type: integer
+          format: int64
+          nullable: true
+          description: ID родительской категории для создания иерархии
+          example: null
+
+    Product:
+      type: object
+      required:
+        - id
+        - name
+        - price
+        - categoryId
+        - available
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор товара
+          example: 123
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Название товара
+          example: "iPhone 15 Pro"
+        description:
+          type: string
+          maxLength: 2000
+          description: Описание товара
+          example: "Последняя модель iPhone с камерой 48MP и процессором A17 Pro"
+        price:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Цена товара в основной валюте
+          example: 89999.99
+        categoryId:
+          type: integer
+          format: int64
+          description: ID категории товара
+          example: 5
+        imageUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: URL изображения товара
+          example: "https://example.com/images/iphone-15-pro.jpg"
+        available:
+          type: boolean
+          description: Доступность товара для заказа
+          example: true
+        rating:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+          nullable: true
+          description: Средний рейтинг товара
+          example: 4.5
+        reviewCount:
+          type: integer
+          minimum: 0
+          description: Количество отзывов
+          example: 127
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    ProductsPage:
+      type: object
+      required:
+        - content
+        - page
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    Review:
+      type: object
+      required:
+        - id
+        - productId
+        - userId
+        - rating
+        - createdAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор отзыва
+          example: 1
+        productId:
+          type: integer
+          format: int64
+          description: ID товара
+          example: 123
+        userId:
+          type: integer
+          format: int64
+          description: ID пользователя
+          example: 1
+        userName:
+          type: string
+          description: Имя пользователя, оставившего отзыв
+          example: "Джон Доу"
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Оценка товара от 1 до 5
+          example: 5
+        comment:
+          type: string
+          maxLength: 1000
+          nullable: true
+          description: Текст отзыва
+          example: "Отличный товар, рекомендую всем!"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    ReviewsPage:
+      type: object
+      required:
+        - content
+        - page
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    CartItem:
+      type: object
+      required:
+        - id
+        - productId
+        - productName
+        - quantity
+        - price
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID элемента корзины
+          example: 1
+        productId:
+          type: integer
+          format: int64
+          description: ID товара
+          example: 123
+        productName:
+          type: string
+          description: Название товара
+          example: "iPhone 15 Pro"
+        quantity:
+          type: integer
+          minimum: 1
+          description: Количество товара
+          example: 1
+        price:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Цена за единицу товара
+          example: 89999.99
+
+    Cart:
+      type: object
+      required:
+        - items
+        - totalAmount
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        totalAmount:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Общая стоимость корзины
+          example: 89999.99
+
+    Order:
+      type: object
+      required:
+        - id
+        - userId
+        - status
+        - totalAmount
+        - items
+        - shippingAddress
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор заказа
+          example: 1001
+        userId:
+          type: integer
+          format: int64
+          description: ID пользователя, создавшего заказ
+          example: 1
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED]
+          description: Статус заказа
+          example: "PENDING"
+        totalAmount:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Общая стоимость заказа
+          example: 179999.98
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          minItems: 1
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+        comment:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Комментарий к заказу
+          example: "Доставить после 18:00"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    OrderItem:
+      type: object
+      required:
+        - productId
+        - productName
+        - quantity
+        - priceAtTime
+      properties:
+        productId:
+          type: integer
+          format: int64
+          description: ID товара
+          example: 123
+        productName:
+          type: string
+          description: Название товара на момент заказа
+          example: "iPhone 15 Pro"
+        quantity:
+          type: integer
+          minimum: 1
+          description: Количество товара
+          example: 2
+        priceAtTime:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Цена товара на момент заказа
+          example: 89999.99
+
+    OrdersPage:
+      type: object
+      required:
+        - content
+        - page
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    Address:
+      type: object
+      required:
+        - street
+        - city
+        - postalCode
+      properties:
+        street:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Улица и номер дома
+          example: "ул. Ленина, д. 123, кв. 45"
+        city:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Город
+          example: "Минск"
+        postalCode:
+          type: string
+          pattern: '^\d{6}$'
+          description: Почтовый индекс
+          example: "220050"
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Номер страницы (начинается с 0)
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+      example: 0
+
+    SizeParam:
+      name: size
+      in: query
+      description: Размер страницы
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+      example: 20
+
+    ProductIdParam:
+      name: productId
+      in: path
+      required: true
+      description: Уникальный идентификатор товара
+      schema:
+        type: integer
+        format: int64
+      example: 123
+
+    OrderIdParam:
+      name: orderId
+      in: path
+      required: true
+      description: Уникальный идентификатор заказа
+      schema:
+        type: integer
+        format: int64
+      example: 1001
+
+    CategoryIdParam:
+      name: categoryId
+      in: path
+      required: true
+      description: Уникальный идентификатор категории
+      schema:
+        type: integer
+        format: int64
+      example: 1
+
+    CartItemIdParam:
+      name: itemId
+      in: path
+      required: true
+      description: Уникальный идентификатор элемента корзины
+      schema:
+        type: integer
+        format: int64
+      example: 1
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Регистрация пользователя
+      description: Создает новую учетную запись пользователя
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - firstName
+                - lastName
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+                password:
+                  type: string
+                  minLength: 8
+                  pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$'
+                  description: "Пароль должен содержать минимум 8 символов, включая заглавную букву, строчную букву и цифру"
+                  example: "SecurePassword123!"
+                firstName:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                  example: "Джон"
+                lastName:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                  example: "Доу"
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Пользователь успешно зарегистрирован."
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Пользователь с таким email уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Авторизация пользователя
+      description: Аутентификация пользователя и получение JWT токенов
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+                password:
+                  type: string
+                  example: "SecurePassword123!"
+      responses:
+        '200':
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - accessToken
+                  - refreshToken
+                  - user
+                properties:
+                  accessToken:
+                    type: string
+                    description: JWT токен для доступа к API (действителен 15 минут)
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refreshToken:
+                    type: string
+                    description: Токен для обновления access токена (действителен 7 дней)
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Неверные учетные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Обновление токена
+      description: Получение нового access токена с использованием refresh токена
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  description: Refresh токен
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: Токен успешно обновлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refreshToken:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '401':
+          description: Недействительный refresh токен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Выход из системы
+      description: Отзыв токенов и выход пользователя из системы
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  description: Refresh токен для отзыва
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '204':
+          description: Успешный выход из системы
+        '401':
+          description: Неавторизованный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/forgot-password:
+    post:
+      tags:
+        - Authentication
+      summary: Восстановление пароля
+      description: Отправляет ссылку для восстановления пароля на email пользователя
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+      responses:
+        '200':
+          description: Инструкции по восстановлению отправлены на email
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Инструкции по восстановлению пароля отправлены на ваш email"
+        '404':
+          description: Пользователь с таким email не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/profile:
+    get:
+      tags:
+        - Users
+      summary: Получить профиль пользователя
+      description: Возвращает профиль текущего авторизованного пользователя
+      responses:
+        '200':
+          description: Профиль пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Users
+      summary: Обновить профиль пользователя
+      description: Обновляет информацию профиля текущего пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                  example: "Джон"
+                lastName:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                  example: "Доу"
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+      responses:
+        '200':
+          description: Профиль успешно обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Получить список всех пользователей
+      description: Возвращает пагинированный список всех пользователей (только для администраторов)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersPage'
+        '403':
+          description: Недостаточно прав доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /categories:
+    get:
+      tags:
+        - Categories
+      summary: Получить список категорий
+      description: Возвращает список всех категорий товаров
+      security: []
+      responses:
+        '200':
+          description: Список категорий
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+
+  /admin/categories:
+    post:
+      tags:
+        - Admin
+      summary: Создать категорию
+      description: Создает новую категорию товаров (только для администраторов)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  example: "Смартфоны"
+                description:
+                  type: string
+                  maxLength: 500
+                  example: "Мобильные телефоны различных брендов"
+                parentId:
+                  type: integer
+                  format: int64
+                  nullable: true
+                  example: null
+      responses:
+        '201':
+          description: Категория успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Недостаточно прав доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /products:
+    get:
+      tags:
+        - Products
+      summary: Получить список товаров
+      description: |
+        Возвращает пагинированный список товаров с возможностью фильтрации и поиска.
+        
+        **Фильтрация:**
+        - По категории (`categoryId`)
+        - По диапазону цен (`minPrice`, `maxPrice`)
+        - По доступности (`available`)
+        
+        **Поиск:**
+        - Полнотекстовый поиск по названию и описанию (`search`)
+        
+        **Сортировка:**
+        - По цене, рейтингу, дате создания (`sortBy`)
+        - По возрастанию/убыванию (`sortDirection`)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - name: search
+          in: query
+          description: Поисковый запрос по названию и описанию
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+          example: "iPhone"
+        - name: categoryId
+          in: query
+          description: Фильтр по категории
+          required: false
+          schema:
+            type: integer
+            format: int64
+          example: 5
+        - name: minPrice
+          in: query
+          description: Минимальная цена
+          required: false
+          schema:
+            type: number
+            format: decimal
+            minimum: 0
+          example: 1000.00
+        - name: maxPrice
+          in: query
+          description: Максимальная цена
+          required: false
+          schema:
+            type: number
+            format: decimal
+            minimum: 0
+          example: 100000.00
+        - name: available
+          in: query
+          description: Фильтр по доступности
+          required: false
+          schema:
+            type: boolean
+          example: true
+        - name: sortBy
+          in: query
+          description: Поле для сортировки
+          required: false
+          schema:
+            type: string
+            enum: [price, rating, createdAt, name]
+            default: createdAt
+          example: "price"
+        - name: sortDirection
+          in: query
+          description: Направление сортировки
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          example: "asc"
+      responses:
+        '200':
+          description: Список товаров успешно получен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductsPage'
+        '400':
+          description: Неверные параметры запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /products/{productId}:
+    get:
+      tags:
+        - Products
+      summary: Получить товар по ID
+      description: Возвращает детальную информацию о товаре
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/ProductIdParam'
+      responses:
+        '200':
+          description: Информация о товаре
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/products:
+    post:
+      tags:
+        - Admin
+      summary: Создать товар
+      description: Создает новый товар (только для администраторов)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - price
+                - categoryId
+                - available
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                  example: "iPhone 15 Pro"
+                description:
+                  type: string
+                  maxLength: 2000
+                  example: "Последняя модель iPhone с камерой 48MP и процессором A17 Pro"
+                price:
+                  type: number
+                  format: decimal
+                  minimum: 0
+                  example: 89999.99
+                categoryId:
+                  type: integer
+                  format: int64
+                  example: 5
+                imageUrl:
+                  type: string
+                  format: uri
+                  nullable: true
+                  description: URL изображения товара
+                  example: "https://example.com/images/iphone-15-pro.jpg"
+                available:
+                  type: boolean
+                  description: Доступность товара для заказа
+                  example: true
+                initialQuantity:
+                  type: integer
+                  minimum: 0
+                  description: Начальное количество товара на складе
+                  example: 100
+      responses:
+        '201':
+          description: Товар успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Ошибка валидации данных или неверный ID категории
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Недостаточно прав доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/products/{productId}:
+    put:
+      tags:
+        - Admin
+      summary: Обновить товар
+      description: Обновляет информацию о существующем товаре (только для администраторов)
+      parameters:
+        - $ref: '#/components/parameters/ProductIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                  example: "iPhone 15 Pro Max"
+                description:
+                  type: string
+                  maxLength: 2000
+                  example: "Последняя модель iPhone с увеличенным экраном и батареей"
+                price:
+                  type: number
+                  format: decimal
+                  minimum: 0
+                  example: 99999.99
+                categoryId:
+                  type: integer
+                  format: int64
+                  example: 5
+                imageUrl:
+                  type: string
+                  format: uri
+                  nullable: true
+                  example: "https://example.com/images/iphone-15-pro-max.jpg"
+                available:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Товар успешно обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Недостаточно прав доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Admin
+      summary: Удалить товар
+      description: Удаляет товар из каталога (только для администраторов)
+      parameters:
+        - $ref: '#/components/parameters/ProductIdParam'
+      responses:
+        '204':
+          description: Товар успешно удален
+        '403':
+          description: Недостаточно прав доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ===== ОТЗЫВЫ =====
+  /products/{productId}/reviews:
+    get:
+      tags:
+        - Reviews
+      summary: Получить отзывы о товаре
+      description: Возвращает пагинированный список отзывов для конкретного товара
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/ProductIdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Список отзывов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewsPage'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Reviews
+      summary: Добавить отзыв
+      description: Создает новый отзыв для товара. Пользователь должен быть авторизован.
+      parameters:
+        - $ref: '#/components/parameters/ProductIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rating
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  example: 5
+                comment:
+                  type: string
+                  maxLength: 1000
+                  nullable: true
+                  example: "Отличный товар!"
+      responses:
+        '201':
+          description: Отзыв успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Ошибка валидации или пользователь уже оставлял отзыв
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ===== КОРЗИНА =====
+  /cart:
+    get:
+      tags:
+        - Cart
+      summary: Получить содержимое корзины
+      description: Возвращает текущее состояние корзины для авторизованного пользователя
+      responses:
+        '200':
+          description: Содержимое корзины
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Cart
+      summary: Очистить корзину
+      description: Удаляет все товары из корзины текущего пользователя
+      responses:
+        '204':
+          description: Корзина успешно очищена
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /cart/items:
+    post:
+      tags:
+        - Cart
+      summary: Добавить товар в корзину
+      description: Добавляет товар в корзину или увеличивает его количество, если он уже там
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - productId
+                - quantity
+              properties:
+                productId:
+                  type: integer
+                  format: int64
+                  example: 123
+                quantity:
+                  type: integer
+                  minimum: 1
+                  example: 1
+      responses:
+        '200':
+          description: Товар успешно добавлен в корзину
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          description: Неверные данные (например, недостаточно товара на складе)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /cart/items/{itemId}:
+    put:
+      tags:
+        - Cart
+      summary: Изменить количество товара
+      description: Обновляет количество конкретного товара в корзине
+      parameters:
+        - $ref: '#/components/parameters/CartItemIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - quantity
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+                  description: Новое количество товара
+                  example: 2
+      responses:
+        '200':
+          description: Количество товара обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          description: Неверные данные (например, недостаточно товара на складе)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Элемент корзины не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Cart
+      summary: Удалить товар из корзины
+      description: Удаляет один элемент из корзины
+      parameters:
+        - $ref: '#/components/parameters/CartItemIdParam'
+      responses:
+        '200':
+          description: Товар удален из корзины
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Элемент корзины не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ===== ЗАКАЗЫ =====
+  /orders:
+    get:
+      tags:
+        - Orders
+      summary: Получить историю заказов
+      description: Возвращает пагинированную историю заказов текущего пользователя
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: История заказов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrdersPage'
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Orders
+      summary: Создать заказ
+      description: Создает новый заказ из товаров в корзине пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - shippingAddress
+              properties:
+                shippingAddress:
+                  $ref: '#/components/schemas/Address'
+                comment:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                  example: "Позвоните за час до доставки"
+      responses:
+        '201':
+          description: Заказ успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Неверные данные или корзина пуста
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /orders/{orderId}:
+    get:
+      tags:
+        - Orders
+      summary: Получить детали заказа
+      description: Возвращает детальную информацию о конкретном заказе пользователя
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      responses:
+        '200':
+          description: Детали заказа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Доступ запрещен (попытка просмотра чужого заказа)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Заказ не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /orders/{orderId}/cancel:
+    put:
+      tags:
+        - Orders
+      summary: Отменить заказ
+      description: Позволяет пользователю отменить свой заказ, если он еще не был отправлен
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      responses:
+        '200':
+          description: Заказ успешно отменен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Заказ не может быть отменен (например, уже отправлен)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Заказ не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ===== АДМИНИСТРИРОВАНИЕ ЗАКАЗОВ =====
+  /admin/orders:
+    get:
+      tags:
+        - Admin
+      summary: Получить все заказы
+      description: Возвращает пагинированный список всех заказов в системе (только для администраторов)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - name: status
+          in: query
+          description: Фильтр по статусу заказа
+          required: false
+          schema:
+            type: string
+            enum: [PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED]
+          example: "PENDING"
+      responses:
+        '200':
+          description: Список всех заказов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrdersPage'
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Недостаточно прав доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/orders/{orderId}:
+    put:
+      tags:
+        - Admin
+      summary: Обновить статус заказа
+      description: Позволяет администратору изменять статус заказа
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED]
+                  description: Новый статус заказа
+                  example: "SHIPPED"
+      responses:
+        '200':
+          description: Статус заказа успешно обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Неверный статус
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Недостаточно прав доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Заказ не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
