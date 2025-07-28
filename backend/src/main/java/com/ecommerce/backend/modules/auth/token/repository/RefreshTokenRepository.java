@@ -29,7 +29,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken,Long>
      * Отозвать все токены пользователя
      */
     @Modifying
-    @Query("UPDATE RefreshToken rt SET rt.isRevoked = true, rt.updatedAt = CURRENT_TIMESTAMP " +
+    @Query("UPDATE RefreshToken rt SET rt.isRevoked = true " +
             "WHERE rt.user.id = :userId AND rt.isRevoked = false")
     void revokeAllUserTokens(@Param("userId") Long userId);
 
