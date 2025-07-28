@@ -1,5 +1,6 @@
 package com.ecommerce.backend.modules.auth.jwt;
 
+import com.ecommerce.backend.modules.user.entity.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

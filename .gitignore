@@ -13,8 +13,7 @@ backend/.mvn/wrapper/maven-wrapper.jar
 
 
 # Environment
-.env.local
-.env.production
+.env
 
 
 # Databases

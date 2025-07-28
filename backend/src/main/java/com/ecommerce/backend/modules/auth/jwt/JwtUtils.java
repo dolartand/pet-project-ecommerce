@@ -1,5 +1,6 @@
 package com.ecommerce.backend.modules.auth.jwt;
 
+import com.ecommerce.backend.modules.auth.token.service.RefreshTokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -28,6 +29,7 @@ import static java.util.stream.Collectors.joining;
 public class JwtUtils {
     private final JwtProps jwtProps;
     private final RedisTemplate<String, String> redisTemplate;
+    private final RefreshTokenService refreshTokenService;
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = jwtProps.getSecret().getBytes(StandardCharsets.UTF_8);
@@ -41,12 +43,8 @@ public class JwtUtils {
     public String generateRefreshToken(UserDetails userDetails, Long userId) {
         String refreshToken = generateToken(userDetails, userId, jwtProps.getRefreshTokenExpiration(), "refresh");
 
-        String redisKey = "refreshToken:" + userId;
-        redisTemplate.opsForValue().set(
-                redisKey,
-                refreshToken,
-                Duration.ofMillis(jwtProps.getRefreshTokenExpiration())
-        );
+        refreshTokenService.saveRefreshToken(refreshToken, userId);
+
         return refreshToken;
     }
 
@@ -103,9 +101,7 @@ public class JwtUtils {
 
             String tokenType = claims.get("tokenType", String.class);
             if ("refresh".equals(tokenType)) {
-                Long userId = claims.get("userId", Long.class);
-                String storedToken = redisTemplate.opsForValue().get("refreshToken:" + userId);
-                return token.equals(storedToken);
+                return refreshTokenService.isTokenValid(token);
             }
 
             return true;
@@ -149,14 +145,14 @@ public class JwtUtils {
     }
 
     public void revokeRefreshToken(Long userId) {
-        String redisKey = "refresh_token:" + userId;
-        redisTemplate.delete(redisKey);
+        refreshTokenService.revokeAllUserTokens(userId);
     }
 
     public String rotateRefreshToken(String oldRefreshToken, UserDetails userDetails, Long userId) {
-        blacklistToken(oldRefreshToken);
-        revokeRefreshToken(userId);
+        String newRefreshToken = generateToken(userDetails, userId, jwtProps.getRefreshTokenExpiration(), "refresh");
 
-        return generateRefreshToken(userDetails, userId);
+        refreshTokenService.rotateToken(oldRefreshToken, newRefreshToken);
+
+        return newRefreshToken;
     }
 }

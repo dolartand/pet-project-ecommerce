@@ -1,6 +1,7 @@
 package com.ecommerce.backend.config;
 
 import com.ecommerce.backend.modules.auth.dto.ErrorResponse;
+import com.ecommerce.backend.modules.auth.jwt.CustomUserDetailsService;
 import com.ecommerce.backend.modules.auth.jwt.JwtAuthenticationFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -33,10 +34,11 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CorsConfigurationSource corsConfigurationSource;
+    private final CustomUserDetailsService userDetailsService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(5);
+        return new BCryptPasswordEncoder(7);
     }
 
     @Bean

@@ -3,7 +3,9 @@ package com.ecommerce.backend.modules.auth.service;
 import com.ecommerce.backend.modules.auth.jwt.CustomUserDetails;
 import com.ecommerce.backend.modules.auth.jwt.CustomUserDetailsService;
 import com.ecommerce.backend.modules.auth.jwt.JwtUtils;
+import com.ecommerce.backend.modules.auth.token.service.RefreshTokenService;
 import com.ecommerce.backend.modules.user.entity.User;
+import com.ecommerce.backend.modules.user.entity.UserRole;
 import com.ecommerce.backend.modules.user.repository.UserRepository;
 import com.ecommerce.backend.shared.dto.*;
 import com.ecommerce.backend.shared.exception.InvalidCredentialsException;
@@ -12,7 +14,6 @@ import com.ecommerce.backend.shared.exception.UserAlreadyExistsException;
 import com.ecommerce.backend.shared.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,11 +37,11 @@ public class AuthService {
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService userDetailsService;
     private final AuthenticationManager authenticationManager;
-    private final ApplicationEventPublisher eventPublisher;
+    private final RefreshTokenService refreshTokenService;
 
-    public void register(RegisterRequest req) {
-        if (userRepository.existsByEmail(req.getEmail)) {
-            throw new UserAlreadyExistsException("User with email: " + req.getEmail() + " already exists");
+    public void register(RegisterRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new UserAlreadyExistsException("User with email: " + request.getEmail() + " already exists");
         }
 
         User user = User.builder()
@@ -52,32 +53,29 @@ public class AuthService {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
+
         User savedUser = userRepository.save(user);
-        eventPublisher.publishEvent(new UserRegisteredEvent(savedUser.getId(), savedUser.getEmail()));
         log.info("User registered successfully: {}", savedUser.getEmail());
     }
 
     public LoginResponse login(LoginRequest request) {
         try {
-            // Аутентифицируем пользователя
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
 
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-            // Генерируем токены
             String accessToken = jwtUtils.generateAccessToken(userDetails, userDetails.getId());
             String refreshToken = jwtUtils.generateRefreshToken(userDetails, userDetails.getId());
 
-            // Преобразуем в DTO
             UserDto userDto = UserDto.builder()
                     .id(userDetails.getId())
                     .email(userDetails.getEmail())
                     .firstName(userDetails.getFirstName())
                     .lastName(userDetails.getLastName())
                     .role(userDetails.getRole())
-                    .createdAt(LocalDateTime.now()) // В реальном приложении получить из БД
+                    .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
 
@@ -106,7 +104,6 @@ public class AuthService {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-        // Выполняем rotation refresh токена
         String newAccessToken = jwtUtils.generateAccessToken(userDetails, userId);
         String newRefreshToken = jwtUtils.rotateRefreshToken(refreshToken, userDetails, userId);
 
@@ -121,11 +118,7 @@ public class AuthService {
     public void logout(LogoutRequest request, Long userId) {
         String refreshToken = request.getRefreshToken();
 
-        // Добавляем refresh token в черный список
-        jwtUtils.blacklistToken(refreshToken);
-
-        // Отзываем refresh token из Redis
-        jwtUtils.revokeRefreshToken(userId);
+        refreshTokenService.revokeToken(refreshToken);
 
         log.info("User logged out successfully: userId={}", userId);
     }
@@ -136,12 +129,8 @@ public class AuthService {
 
         String resetToken = UUID.randomUUID().toString();
 
-        // В реальном приложении сохранили бы токен в БД с временем жизни
-        // и отправили бы email с ссылкой для сброса
-
-        eventPublisher.publishEvent(new PasswordResetRequestedEvent(user.getId(), user.getEmail(), resetToken));
+        // TODO: Добавить реализацию восстановления пароля
 
         log.info("Password reset requested for user: {}", user.getEmail());
     }
-
 }
