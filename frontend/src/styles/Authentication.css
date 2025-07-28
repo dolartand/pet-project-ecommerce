@@ -1,0 +1,96 @@
+.error-msg {
+    margin-bottom: 0.5em;
+    color: #c00;
+    font-size: 0.9em;
+}
+.modal-backdrop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+.modal-backdrop.closing {
+    opacity: 0;
+}
+.page-content{
+    background: #fff;
+    border-radius: 0.3em;
+    padding: 1em;
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+    width: 20%;
+}
+.page-content.closing{
+    transform: translateY(-2em);
+}
+.onClose{
+    border-radius: 1em;
+    background:transparent;
+    border-color: #8BB4C7;
+    transition: transform 0.2s ease;
+    cursor: pointer;
+    font-size: 1em;
+    margin:0;
+}
+.onClose:hover{
+    transform: scale(1.02);
+}
+.switch-link, .forgetPassword{
+    color: #9356A0;
+    cursor: pointer;
+    text-decoration: underline #9356A0;
+    transition: color 0.3s ease;
+    text-align: center;
+}
+.switch-link:hover, .forgetPassword:hover{
+    color: #bcacdb;
+    text-decoration: underline #bcacdb;
+}
+h3{
+    text-align: center;
+    color:#176876;
+    font-weight: normal;
+}
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.formLabel{
+    color: #176876 ;
+    align-self: flex-start;
+    margin-left: 0.6em;
+}
+input{
+    border-radius: 0.7em;
+    border: thin solid lightblue;
+    font-size: 1em;
+    padding: 0.5em;
+    margin: 0.5em;
+    align-self: flex-start;
+    width: 89%;
+}
+.submit-btn{
+    border-radius: 0.7em;
+    border: thin solid lightblue;
+    font-size: 1em;
+    padding: 0.5em;
+    margin: 0.5em;
+    cursor: pointer;
+    color: #176876 ;
+    background-color: transparent;
+    transition: transform 0.5s ease;
+    width: 95%;
+}
+.submit-btn:hover{
+    transform: scale(1.02);
+}

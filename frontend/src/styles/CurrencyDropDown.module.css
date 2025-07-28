@@ -1,0 +1,70 @@
+.dropdown{
+    position: relative;
+    display: block;
+}
+.toggle{
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #fff;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    font: inherit;
+}
+.toggle span{
+    opacity: 0.5;
+}
+.toggle span:hover{
+    opacity: 1;
+}
+.menu{
+    display: block;
+    flex-direction: unset;
+    margin: 0.2em 0 0;
+    padding: 0;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    list-style: none;
+    background: #fff;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-1em);
+    transition:
+            opacity 200ms ease-out,
+            transform 200ms ease-out,
+            visibility 0s linear 200ms;
+    z-index: 10;
+}
+.menuOpen{
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0s;
+    border-radius: 0.5em;
+}
+.item{
+    display: block;
+    margin: 0;
+    padding: 0;
+    border-radius: 0.5em;
+    font-weight: normal;
+    font-size: 0.9em;
+}
+.itemBtn{
+    width: 100%;
+    padding: 0.5em 1em;
+    background: none;
+    border-radius: 0.5em;
+    border: none;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    transition: background-color 150ms ease-in-out;
+}
+.itemBtn:hover,
+.itemBtn:focus{
+    background-color: lightblue;
+}
