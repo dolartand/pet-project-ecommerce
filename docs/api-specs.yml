@@ -838,10 +838,7 @@ paths:
                   minLength: 1
                   maxLength: 50
                   example: "Доу"
-                email:
-                  type: string
-                  format: email
-                  example: "john.doe@example.com"
+
       responses:
         '200':
           description: Профиль успешно обновлен

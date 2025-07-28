@@ -61,7 +61,7 @@ public class RefreshTokenService {
 
         RefreshToken token = tokenOpt.get();
 
-        String redisKey = "refreshToken:" + token.getUser().getId();
+        String redisKey = "refresh_token:" + token.getUser().getId();
         String redisToken = redisTemplate.opsForValue().get(redisKey);
 
         return token.isValid() && tokenValue.equals(redisToken);
@@ -88,7 +88,7 @@ public class RefreshTokenService {
     public void revokeAllUserTokens(Long userId) {
         refreshTokenRepository.revokeAllUserTokens(userId);
 
-        String redisKey = "refreshToken:" + userId;
+        String redisKey = "refresh_token:" + userId;
         redisTemplate.delete(redisKey);
 
         log.info("All refresh tokens revoked for user: {}", userId);
