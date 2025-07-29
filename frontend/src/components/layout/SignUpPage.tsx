@@ -51,7 +51,15 @@ function SignUpPage() {
         e.preventDefault();
         if (!validate()) return;
         // axios.post(); добавление юзера
-        clearAllFields();
+        axios.post('http://localhost:8080/api/auth/register', {email, password, firstName, lastName})
+            .then(res => {
+                alert(res.data.message);
+                // потом поменяю на собственный компонент для сообщений
+                clearAllFields();
+            })
+        .catch(err => {
+            setError(err.response?.data?.message || err.response?.data?.errors );
+        })
     }
     return (
         <form onSubmit={handleSignUp}>

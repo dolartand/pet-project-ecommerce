@@ -37,11 +37,15 @@ function LogInPage ()  {
     const handleLogIn = (e : React.FormEvent<HTMLFormElement>) =>{
         e.preventDefault();
        if (!validate()) return;
-        let data = {};
-
-        const dataJSON = JSON.stringify(data);
-        // ВЫПОЛНИТЬ ЗАПРОС СНАЧАЛА НАДО
-        clearAllFields();
+        axios.post('http://localhost:8080/api/auth/login', {email, password})
+            .then(res => {
+                alert(res.data.message);
+                // потом поменяю на собственный компонент для сообщений
+                clearAllFields();
+            })
+            .catch(err => {
+                setError(err.response?.data?.message || err.response?.data?.errors );
+            })
     }
 
     return (
