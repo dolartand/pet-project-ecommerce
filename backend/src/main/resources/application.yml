@@ -3,7 +3,7 @@ spring:
     name: backend
 
   profiles:
-    active: dev
+    active: docker
 
   datasource:
     driver-class-name: org.postgresql.Driver
