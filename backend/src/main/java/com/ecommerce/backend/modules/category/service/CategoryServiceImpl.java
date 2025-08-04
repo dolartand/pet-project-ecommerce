@@ -1,6 +1,8 @@
 package com.ecommerce.backend.modules.category.service;
 
 import com.ecommerce.backend.modules.category.dto.CategoryDto;
+import com.ecommerce.backend.modules.category.dto.CategoryRequest;
+import com.ecommerce.backend.modules.category.dto.CategoryResponse;
 import com.ecommerce.backend.modules.category.entity.Category;
 import com.ecommerce.backend.modules.category.repository.CategoryRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,49 +23,49 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
 
     @Override
-    public List<CategoryDto> getAllRootCategories() {
+    public List<CategoryResponse> getAllRootCategories() {
         return categoryRepository.findByParentIsNull().stream()
-                .map(this::mapToDto)
+                .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public CategoryDto getCategoryById(Long id) {
+    public CategoryResponse getCategoryById(Long id) {
         return categoryRepository.findById(id)
-                .map(this::mapToDto)
+                .map(this::mapToResponse)
                 .orElseThrow(() -> new EntityNotFoundException("No such category with id: " + id));
     }
 
     @Override
-    public CategoryDto createCategory(CategoryDto categoryDto) {
+    public CategoryResponse createCategory(CategoryRequest request) {
         Category  category = new Category();
-        category.setName(categoryDto.getName());
-        category.setDescription(categoryDto.getDescription());
+        category.setName(request.getName());
+        category.setDescription(request.getDescription());
 
-        if (categoryDto.getParentId() != null) {
-            category.setParent(categoryRepository.findById(categoryDto.getParentId())
-                    .orElseThrow(() -> new EntityNotFoundException("No such category with id: " + categoryDto.getParentId())));
+        if (request.getParentId() != null) {
+            category.setParent(categoryRepository.findById(request.getParentId())
+                    .orElseThrow(() -> new EntityNotFoundException("No such category with id: " + request.getParentId())));
         }
 
         Category savedCategory = categoryRepository.save(category);
         log.info("Created category with id: {}", savedCategory.getId());
-        return mapToDto(savedCategory);
+        return mapToResponse(savedCategory);
     }
 
     @Override
     @Transactional
-    public CategoryDto updateCategory(Long id, CategoryDto categoryDto) {
+    public CategoryResponse updateCategory(Long id, CategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No such category with id: " + id));
-        category.setName(categoryDto.getName());
-        category.setDescription(categoryDto.getDescription());
-        if (categoryDto.getParentId() != null) {
-            category.setParent(categoryRepository.findById(categoryDto.getParentId())
+        category.setName(request.getName());
+        category.setDescription(request.getDescription());
+        if (request.getParentId() != null) {
+            category.setParent(categoryRepository.findById(request.getParentId())
                     .orElseThrow(() -> new EntityNotFoundException("No such category with id: " + id)));
         } else category.setParent(null);
         Category updatedCategory = categoryRepository.save(category);
         log.info("Updated category with id: {}", updatedCategory.getId());
-        return mapToDto(updatedCategory);
+        return mapToResponse(updatedCategory);
     }
 
     @Override
@@ -72,6 +74,17 @@ public class CategoryServiceImpl implements CategoryService {
         if (!categoryRepository.existsById(id)) throw new EntityNotFoundException("No such category with id: " + id);
         categoryRepository.deleteById(id);
         log.info("Deleted category with id: {}", id);
+    }
+
+    private CategoryResponse mapToResponse(Category category) {
+        CategoryResponse categoryResponse = new CategoryResponse();
+        categoryResponse.setName(category.getName());
+        categoryResponse.setDescription(category.getDescription());
+        if (category.getParent() != null) {
+            categoryResponse.setParentId(category.getParent().getId());
+        }
+        categoryResponse.setSubcategories(category.getSubcategories());
+        return categoryResponse;
     }
 
     private CategoryDto mapToDto(Category category) {

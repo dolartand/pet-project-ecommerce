@@ -1,5 +1,6 @@
 package com.ecommerce.backend.modules.category.dto;
 
+import com.ecommerce.backend.modules.category.entity.Category;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
