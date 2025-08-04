@@ -2,7 +2,11 @@ import React, {useState} from "react";
 import '../../styles/Authentication.css';
 import axios from "axios";
 
-function LogInPage ()  {
+type LogInPageProps = {
+    onShowResetPage: () => void;
+};
+
+function LogInPage ({onShowResetPage}: LogInPageProps)  {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [error, setError] = useState<string>('');
@@ -56,7 +60,7 @@ function LogInPage ()  {
             <label htmlFor="password" className='formLabel'>Пароль</label>
             <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)}/>
             {error && (<div className='error-msg'>{error}</div>)}
-            <p className='forgetPassword'>Забыли пароль?</p>
+            <p className='forgetPassword' onClick={onShowResetPage}>Забыли пароль?</p>
             <button type="submit" className='submit-btn'>Войти</button>
         </form>
     )

@@ -4,9 +4,10 @@ import CurrencyDropDown from "../ui/CurrencyDropDown";
 
 type HeaderProps = {
     onLoginClick: () => void;
+    onCartClick: () => void;
 };
 
-function Header({onLoginClick}: HeaderProps) {
+function Header({onLoginClick, onCartClick}: HeaderProps) {
 
     return (
         <header className="navigation-block">
@@ -22,7 +23,7 @@ function Header({onLoginClick}: HeaderProps) {
                 </div>
                 <div className='navigation-bottom'>
                     <div className='header_nav-element hide-mobile'>
-                        <a className="header-logo" href="/public">
+                        <a className="header-logo" href="/">
                             <img src="/assets/logo.png" alt="Online Shop Logo" loading="lazy" />
                         </a>
                         <button className='burger-btn' type='button' aria-label='Навигация'>☰</button>
@@ -40,7 +41,7 @@ function Header({onLoginClick}: HeaderProps) {
                             <li className='simple-menu'>
                                 <img src="https://img.icons8.com/ios-glyphs/40/FFFFFF/like.png" loading="lazy"/>
                                 <p>Избранное</p></li>
-                            <li className='simple-menu'>
+                            <li className='simple-menu' onClick={onCartClick}>
                                 <img src="https://img.icons8.com/?size=40&id=9671&format=png&color=FFFFFF" loading="lazy"/>
                                 <p>Корзина</p></li>
                         </ul>
