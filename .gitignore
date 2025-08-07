@@ -9,6 +9,7 @@
 backend/target/
 backend/.mvn/wrapper/maven-wrapper.jar
 application-dev.yml
+application-docker.yml
 
 # Frontend
 

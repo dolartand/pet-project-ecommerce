@@ -64,6 +64,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorizeRequests) ->
                         authorizeRequests
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login",
                                         "/api/auth/refresh", "/api/auth/forgot-password").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/categories", "/api/products",
@@ -90,7 +91,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationEntryPoint customAuthenticationEntryPoint() {
         return (request, response, authException) -> {
-            response.setContentType("application/json");
+            response.setContentType("application/json; charset=utf-8");
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
 
             ErrorResponse errorResponse = ErrorResponse.builder()
@@ -108,7 +109,7 @@ public class SecurityConfig {
     @Bean
     public AccessDeniedHandler customAccessDeniedHandler() {
         return (request, response, accessDeniedException) -> {
-            response.setContentType("application/json");
+            response.setContentType("application/json; charset=utf-8");
             response.setStatus(HttpStatus.FORBIDDEN.value());
 
             ErrorResponse errorResponse = ErrorResponse.builder()

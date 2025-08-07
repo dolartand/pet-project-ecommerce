@@ -22,7 +22,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByCategoryIdIn(List<Long> categoryIds);
 
     @Query("SELECT p FROM Product p WHERE " +
-            "(:search IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(p.description) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
+            "(:search IS NULL OR " +
+            "LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) OR " + // <-- ИЗМЕНЕНИЕ
+            "LOWER(p.description) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))) AND " + // <-- ИЗМЕНЕНИЕ
             "(:categoryId IS NULL OR p.categoryId = :categoryId) AND " +
             "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
             "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +

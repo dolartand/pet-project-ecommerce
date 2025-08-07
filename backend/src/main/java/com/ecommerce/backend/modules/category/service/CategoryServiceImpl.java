@@ -78,12 +78,24 @@ public class CategoryServiceImpl implements CategoryService {
 
     private CategoryResponse mapToResponse(Category category) {
         CategoryResponse categoryResponse = new CategoryResponse();
+
+        categoryResponse.setId(category.getId());
         categoryResponse.setName(category.getName());
         categoryResponse.setDescription(category.getDescription());
+
         if (category.getParent() != null) {
             categoryResponse.setParentId(category.getParent().getId());
+        } else {
+            categoryResponse.setParentId(null);
         }
-        categoryResponse.setSubcategories(category.getSubcategories());
+
+        if (category.getSubcategories() != null && !category.getSubcategories().isEmpty()) {
+            List<CategoryResponse> subcategoryResponses = category.getSubcategories().stream()
+                    .map(this::mapToResponse)
+                    .collect(Collectors.toList());
+            categoryResponse.setSubcategories(subcategoryResponses);
+        }
+
         return categoryResponse;
     }
 
@@ -93,7 +105,6 @@ public class CategoryServiceImpl implements CategoryService {
                 .name(category.getName())
                 .description(category.getDescription())
                 .parentId(category.getParent().getId())
-                .subcategories(category.getSubcategories())
                 .build();
     }
 }
