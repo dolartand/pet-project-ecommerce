@@ -10,6 +10,7 @@ interface Product {
     price: number;
     imageUrl: string;
     categoryId: number;
+    available: boolean;
 }
 
 function ShoppingBagPage() {

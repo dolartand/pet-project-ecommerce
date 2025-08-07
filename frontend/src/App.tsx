@@ -2,6 +2,7 @@ import React, {useState,useEffect} from 'react';
 import Header from "./components/layout/Header";
 import AuthMode from "./components/layout/AuthMode";
 import ShoppingBagPage from "./pages/ShoppingBagPage";
+import MainPage from "./pages/MainPage";
 import styles from 'styles/global.module.css';
 
 type AuthMode = 'login' | 'signup' | 'reset' | null;
@@ -30,7 +31,9 @@ function App() {
                 onResetMode={()=> setAuthMode('reset')}
                 onBackToLogIn={()=>setAuthMode('login')}/>
             )}
-            {isCartOpen && (<ShoppingBagPage/>)}
+            <main>
+                {isCartOpen ? <ShoppingBagPage /> : <MainPage />}
+            </main>
         </div>
   );
 }

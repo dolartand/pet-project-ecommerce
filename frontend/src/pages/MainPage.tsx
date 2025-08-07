@@ -1,0 +1,49 @@
+import React, {useEffect, useState} from "react";
+import ItemCartMain from "../components/layout/ItemCartMain";
+import axios from "axios";
+import "../styles/ItemCartMain.css";
+
+interface Product {
+    id: number;
+    name: string;
+    description: string;
+    price: number;
+    imageUrl: string;
+    categoryId: number;
+    rating: number;
+    reviewCount: number;
+    available: boolean;
+}
+
+function MainPage () {
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+    const [products, setProducts] = useState<Product[]>([]);
+    useEffect(() => {
+        setLoading(true);
+        axios.get("http://localhost:8000/api/products")
+            .then(res =>{
+                setProducts(res.data);
+                setError(null);
+            })
+            .catch(err => {
+                console.log('Ошибка получения товаров ', err);
+                setError('Не удалось загрузить товары. Попробуйте позже.')
+            })
+            .finally(() => setLoading(false));
+    },[])
+
+    if (loading)    return <div>Загрузка...</div>
+    if (error)    return <div className='error-msg'>{error}</div>;
+    if (products.length === 0) return <div>Товаров нет</div>;
+
+    return (
+        <div className='main-page'>
+            {products.filter(product => product.available)
+                .map((product: Product) => (
+                <ItemCartMain item={product} key={product.id} />
+            ))}
+        </div>
+    )
+}
+export default MainPage;
