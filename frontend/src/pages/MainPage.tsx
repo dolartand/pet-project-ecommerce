@@ -21,9 +21,11 @@ function MainPage () {
     const [products, setProducts] = useState<Product[]>([]);
     useEffect(() => {
         setLoading(true);
-        axios.get("http://localhost:8000/api/products")
+        axios.get("http://localhost:8080/api/products")
             .then(res =>{
-                setProducts(res.data);
+                if (res.data && Array.isArray(res.data.content)) {
+                    setProducts(res.data.content);
+                }
                 setError(null);
             })
             .catch(err => {

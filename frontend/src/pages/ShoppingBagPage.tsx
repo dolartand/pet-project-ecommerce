@@ -25,7 +25,7 @@ function ShoppingBagPage() {
     },[goods]);
     useEffect(() => {
         setLoading(true);
-        axios.get('http://localhost:8000/api/cart')
+        axios.get('http://localhost:8080/api/cart')
             .then(res =>{
                 setGoods(res.data);
                 const allItems = res.data.map((item: Product) => item.id);

@@ -5,9 +5,10 @@ import CurrencyDropDown from "../ui/CurrencyDropDown";
 type HeaderProps = {
     onLoginClick: () => void;
     onCartClick: () => void;
+    onMenuClick: () => void;
 };
 
-function Header({onLoginClick, onCartClick}: HeaderProps) {
+function Header({onLoginClick, onCartClick, onMenuClick}: HeaderProps) {
 
     return (
         <header className="navigation-block">
@@ -26,7 +27,7 @@ function Header({onLoginClick, onCartClick}: HeaderProps) {
                         <a className="header-logo" href="/">
                             <img src="/assets/logo.png" alt="Online Shop Logo" loading="lazy" />
                         </a>
-                        <button className='burger-btn' type='button' aria-label='Навигация'>☰</button>
+                        <button className='burger-btn' type='button' aria-label='Навигация' onClick={onMenuClick}>☰</button>
                     </div>
                     <div className='search-block'>
                         <input type="text" placeholder="Найти на сайте"/>
