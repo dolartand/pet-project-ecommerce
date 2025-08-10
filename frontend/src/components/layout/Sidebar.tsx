@@ -17,6 +17,17 @@ function Sidebar({ isOpen, isClose }: SidebarProps) {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = React.useState<string | null>(null);
 
+    const [isClosing, setIsClosing] = useState(false);
+    useEffect(()=>{
+        if (!isClosing) return;
+        const timer = setTimeout(()=>{
+            setIsClosing(false);
+            isClose();
+        },300);
+        return () => {clearTimeout(timer);};
+    },[isClosing, isClose]);
+    const handleClose = () => setIsClosing(true);
+
     useEffect(() => {
         setLoading(true);
         axios.get('http://localhost:8080/api/categories')
@@ -31,20 +42,21 @@ function Sidebar({ isOpen, isClose }: SidebarProps) {
         .finally(() => setLoading(false));
     }, []);
 
-
-    const sidebarClassName = `sidebar-container ${isOpen ? 'open' : ''}`;
+    if (!isOpen && !isClosing)    return null;
 
     return (
-        <nav className={sidebarClassName}>
-            <h1>Категории товаров</h1>
-            {loading && (<div>Загрузка...</div>)}
-            {error && <div className='error-msg'>{error}</div>}
-            <ul className='categories-list'>
-                {categories.map(category => (
-                    <li key={category.id}>{category.name}</li>
-                ))}
-            </ul>
-        </nav>
+        <div className={`sidebar-content ${isClosing ? 'closing' : ''}`} onClick={handleClose}>
+            <nav className={`sidebar-container ${isOpen && !isClosing ? 'open' : ''} ${isClosing ? 'closing' : ''}`} onClick={e => e.stopPropagation()}>
+                <h1>Категории товаров</h1>
+                {loading && (<div>Загрузка...</div>)}
+                {error && <div className='error-msg'>{error}</div>}
+                <ul className='categories-list'>
+                    {categories.map(category => (
+                        <li key={category.id}>{category.name}</li>
+                    ))}
+                </ul>
+            </nav>
+        </div>
     )
 }
 export default Sidebar;
