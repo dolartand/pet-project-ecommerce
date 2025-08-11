@@ -14,14 +14,19 @@ interface Product {
     reviewCount: number;
     available: boolean;
 }
+type MainPageProps = {
+    categoryId: number | null;
+}
 
-function MainPage () {
+function MainPage ({categoryId}: MainPageProps) {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
     useEffect(() => {
         setLoading(true);
-        axios.get("http://localhost:8080/api/products")
+        let url = "http://localhost:8080/api/products";
+        if (categoryId) url += `?categoryId=${categoryId}`;
+        axios.get(url)
             .then(res =>{
                 if (res.data && Array.isArray(res.data.content)) {
                     setProducts(res.data.content);

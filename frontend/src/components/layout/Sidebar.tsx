@@ -9,24 +9,15 @@ interface Category {
 }
 type SidebarProps = {
     isOpen: boolean;
-    isClose: () => void;
+    onClose: () => void;
+    isClosing: boolean;
+    handleCategorySelected: (categoryId: number) => void;
 }
 
-function Sidebar({ isOpen, isClose }: SidebarProps) {
+function Sidebar({ isOpen, onClose, isClosing, handleCategorySelected }: SidebarProps) {
     const [categories, setCategories] = React.useState<Category[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = React.useState<string | null>(null);
-
-    const [isClosing, setIsClosing] = useState(false);
-    useEffect(()=>{
-        if (!isClosing) return;
-        const timer = setTimeout(()=>{
-            setIsClosing(false);
-            isClose();
-        },300);
-        return () => {clearTimeout(timer);};
-    },[isClosing, isClose]);
-    const handleClose = () => setIsClosing(true);
 
     useEffect(() => {
         setLoading(true);
@@ -45,14 +36,14 @@ function Sidebar({ isOpen, isClose }: SidebarProps) {
     if (!isOpen && !isClosing)    return null;
 
     return (
-        <div className={`sidebar-content ${isClosing ? 'closing' : ''}`} onClick={handleClose}>
+        <div className={`sidebar-content ${isClosing ? 'closing' : ''}`} onClick={onClose}>
             <nav className={`sidebar-container ${isOpen && !isClosing ? 'open' : ''} ${isClosing ? 'closing' : ''}`} onClick={e => e.stopPropagation()}>
                 <h1>Категории товаров</h1>
                 {loading && (<div>Загрузка...</div>)}
                 {error && <div className='error-msg'>{error}</div>}
                 <ul className='categories-list'>
                     {categories.map(category => (
-                        <li key={category.id}>{category.name}</li>
+                        <li key={category.id} onClick={()=> handleCategorySelected(category.id)}>{category.name}</li>
                     ))}
                 </ul>
             </nav>
