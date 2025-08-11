@@ -38,7 +38,7 @@ function MainPage ({categoryId}: MainPageProps) {
                 setError('Не удалось загрузить товары. Попробуйте позже.')
             })
             .finally(() => setLoading(false));
-    },[])
+    },[categoryId])
 
     if (loading)    return <div>Загрузка...</div>
     if (error)    return <div className='error-msg'>{error}</div>;

@@ -43,7 +43,7 @@ function LogInPage ({onShowResetPage}: LogInPageProps)  {
        if (!validate()) return;
         axios.post('http://localhost:8080/api/auth/login', {email, password})
             .then(res => {
-                alert(res.data.message);
+                alert('Успешный вход в аккаунт');
                 // потом поменяю на собственный компонент для сообщений
                 clearAllFields();
             })

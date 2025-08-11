@@ -33,8 +33,11 @@ function App() {
 
     const handleSidebarClose = () => { setIsClosing(true); }
     const handleSidebarToggle = () => {
-        if (isSidebarOpen && !isClosing)    setIsClosing(true);
-        else setIsClosing(false);
+        if (isSidebarOpen)    setIsClosing(true);
+        else {
+            setIsSidebarOpen(true);
+            setIsClosing(false);
+        }
     }
 
     const handleCategorySelect = (categoryId: number) => {
