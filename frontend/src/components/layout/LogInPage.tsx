@@ -1,15 +1,18 @@
 import React, {useState} from "react";
 import '../../styles/Authentication.css';
 import axios from "axios";
+import {useAuth} from "../../context/AuthContext";
 
 type LogInPageProps = {
     onShowResetPage: () => void;
+    onLogInSuccess: () => void; // для закрытия окна
 };
 
-function LogInPage ({onShowResetPage}: LogInPageProps)  {
+function LogInPage ({onShowResetPage, onLogInSuccess}: LogInPageProps)  {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [error, setError] = useState<string>('');
+    const {logIn} = useAuth();
 
     const clearAllFields = () => {
         setError('');
@@ -46,6 +49,8 @@ function LogInPage ({onShowResetPage}: LogInPageProps)  {
                 alert('Успешный вход в аккаунт');
                 // потом поменяю на собственный компонент для сообщений
                 clearAllFields();
+                logIn();
+                onLogInSuccess();
             })
             .catch(err => {
                 setError(err.response?.data?.message || err.response?.data?.errors );

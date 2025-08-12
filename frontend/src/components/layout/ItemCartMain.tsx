@@ -1,8 +1,10 @@
-import React from "react";
+import React, {useState} from "react";
 import "../../styles/ItemCartMain.css";
+import {useAuth} from "../../context/AuthContext";
+import axios from "axios";
 
 interface Product {
-    id: number;
+    productId: number;
     name: string;
     description: string;
     price: number;
@@ -14,9 +16,27 @@ interface Product {
 }
 type ItemCartMainProps = {
     item: Product;
+    onLogInRequired: () => void;
 }
 
-function ItemCartMain({item}: ItemCartMainProps) {
+function ItemCartMain({item, onLogInRequired}: ItemCartMainProps) {
+    const {isLoggedIn} = useAuth();
+    const [error, setError] = useState<string>('');
+
+    const handleAddToCart = () => {
+        if (isLoggedIn) {
+            axios.post('http://localhost:8080/api/cart/items', {productId: item.productId,quantity: 1})
+            .then(res => {
+                alert(`Товар "${item.name}" добавлен в корзину.`);
+            })
+            .catch(err => {
+                setError(err.response?.data?.message || err.response?.data?.errors );
+            })
+        } else{
+            onLogInRequired();
+        }
+    }
+
     return (
         <div className='item-container'>
             <img src={item.imageUrl} alt="фото"/>
@@ -27,8 +47,9 @@ function ItemCartMain({item}: ItemCartMainProps) {
                     <p className='rating'>⭐{item.rating}</p>
                     <p className='reviewCount'>{item.reviewCount} оценок</p>
                 </div>
+                {error && (<div className='error-msg'>{error}</div>)}
             </div>
-            <button className='to-cart'>В корзину</button>
+            <button className='to-cart' onClick={handleAddToCart}>В корзину</button>
         </div>
     )
 }

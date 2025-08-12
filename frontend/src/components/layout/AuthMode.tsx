@@ -30,7 +30,7 @@ function AuthMode({ mode, onClose, onSwitchMode, onResetMode, onBackToLogIn }: A
             <div className={`page-content${isClosing ? ' closing' : ''}`} onClick={e => e.stopPropagation()}>
                 <button type='button' aria-label='Закрыть форму' className="onClose" onClick={handleClose}>✕</button>
                 {mode === 'login' && (
-                    <LogInPage onShowResetPage={onResetMode} />
+                    <LogInPage onShowResetPage={onResetMode}  onLogInSuccess={handleClose}/>
                 )}
                 {mode === 'signup' && (
                     <SignUpPage/>

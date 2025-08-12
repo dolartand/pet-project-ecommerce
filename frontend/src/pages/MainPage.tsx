@@ -4,7 +4,7 @@ import axios from "axios";
 import "../styles/ItemCartMain.css";
 
 interface Product {
-    id: number;
+    productId: number;
     name: string;
     description: string;
     price: number;
@@ -16,9 +16,10 @@ interface Product {
 }
 type MainPageProps = {
     categoryId: number | null;
+    handleOpenLoginModal: () => void;
 }
 
-function MainPage ({categoryId}: MainPageProps) {
+function MainPage ({categoryId, handleOpenLoginModal}: MainPageProps) {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
@@ -48,7 +49,7 @@ function MainPage ({categoryId}: MainPageProps) {
         <div className='main-page'>
             {products.filter(product => product.available)
                 .map((product: Product) => (
-                <ItemCartMain item={product} key={product.id} />
+                <ItemCartMain item={product} key={product.productId} onLogInRequired={handleOpenLoginModal} />
             ))}
         </div>
     )
