@@ -12,6 +12,7 @@ import com.ecommerce.backend.modules.product.entity.Product;
 import com.ecommerce.backend.modules.product.repository.ProductRepository;
 import com.ecommerce.backend.modules.user.entity.User;
 import com.ecommerce.backend.modules.user.repository.UserRepository;
+import com.ecommerce.backend.shared.exception.BusinessException;
 import com.ecommerce.backend.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -144,7 +145,7 @@ public class CartService {
 
     private void validateProductAvailability(Product product) {
         if (!product.getAvailable()) {
-            throw new IllegalArgumentException("Product is not available");
+            throw new BusinessException("Product is not available for order", "PRODUCT_NOT_AVAILABLE");
         }
     }
 }

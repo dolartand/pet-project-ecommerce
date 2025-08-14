@@ -1,7 +1,9 @@
 package com.ecommerce.backend.shared.exception;
 
-public class InvalidCredentialsException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class InvalidCredentialsException extends ApplicationException {
     public InvalidCredentialsException(String message) {
-        super(message);
+        super(message, "INVALID_CREDENTIALS", HttpStatus.UNAUTHORIZED);
     }
 }

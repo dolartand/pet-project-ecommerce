@@ -1,7 +1,9 @@
 package com.ecommerce.backend.shared.exception;
 
-public class InvalidTokenException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class InvalidTokenException extends ApplicationException {
     public InvalidTokenException(String message) {
-        super(message);
+        super(message, "INVALID_TOKEN", HttpStatus.UNAUTHORIZED);
     }
 }

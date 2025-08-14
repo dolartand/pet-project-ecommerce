@@ -1,8 +1,8 @@
 package com.ecommerce.backend.config;
 
-import com.ecommerce.backend.modules.auth.dto.ErrorResponse;
 import com.ecommerce.backend.modules.auth.jwt.CustomUserDetailsService;
 import com.ecommerce.backend.modules.auth.jwt.JwtAuthenticationFilter;
+import com.ecommerce.backend.shared.dto.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -28,6 +29,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import java.time.LocalDateTime;
 
 @EnableWebSecurity
+@EnableMethodSecurity
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {

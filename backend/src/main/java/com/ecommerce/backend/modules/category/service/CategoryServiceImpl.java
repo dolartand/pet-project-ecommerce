@@ -5,6 +5,7 @@ import com.ecommerce.backend.modules.category.dto.CategoryRequest;
 import com.ecommerce.backend.modules.category.dto.CategoryResponse;
 import com.ecommerce.backend.modules.category.entity.Category;
 import com.ecommerce.backend.modules.category.repository.CategoryRepository;
+import com.ecommerce.backend.shared.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponse getCategoryById(Long id) {
         return categoryRepository.findById(id)
                 .map(this::mapToResponse)
-                .orElseThrow(() -> new EntityNotFoundException("No such category with id: " + id));
+                .orElseThrow(() -> ResourceNotFoundException.category(id));
     }
 
     @Override

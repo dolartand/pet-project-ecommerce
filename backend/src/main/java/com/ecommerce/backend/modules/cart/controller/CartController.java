@@ -4,11 +4,11 @@ import com.ecommerce.backend.modules.cart.dto.CartItemDto;
 import com.ecommerce.backend.modules.cart.dto.CartResponseDto;
 import com.ecommerce.backend.modules.cart.dto.UpdateCartItemDto;
 import com.ecommerce.backend.modules.cart.service.CartService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,8 +20,8 @@ public class CartController {
     private final CartService cartService;
 
     @GetMapping
-    public ResponseEntity<CartResponseDto> getCart(Authentication authentication) {
-        Long userId = getUserFromAuthentication(authentication);
+    public ResponseEntity<CartResponseDto> getCart(HttpServletRequest req) {
+        Long userId = getUserId(req);
         CartResponseDto cart = cartService.getUserCart(userId);
         return ResponseEntity.ok(cart);
     }
@@ -29,9 +29,9 @@ public class CartController {
     @PostMapping("/items")
     public ResponseEntity<CartResponseDto> addItem(
             @Valid @RequestBody CartItemDto dto,
-            Authentication authentication
+            HttpServletRequest req
     ) {
-        Long userId = getUserFromAuthentication(authentication);
+        Long userId = getUserId(req);
         CartResponseDto cart = cartService.addItemToCart(userId, dto);
         return ResponseEntity.ok(cart);
     }
@@ -40,9 +40,9 @@ public class CartController {
     public ResponseEntity<CartResponseDto> updateItem (
             @PathVariable Long itemId,
             @Valid @RequestBody UpdateCartItemDto dto,
-            Authentication authentication
+            HttpServletRequest req
     ) {
-        Long userId = getUserFromAuthentication(authentication);
+        Long userId = getUserId(req);
         CartResponseDto cart = cartService.updateCartItem(userId, itemId, dto);
         return ResponseEntity.ok(cart);
     }
@@ -50,15 +50,19 @@ public class CartController {
     @DeleteMapping("/items/{itemId}")
     public ResponseEntity<CartResponseDto> deleteItem (
             @PathVariable Long itemId,
-            Authentication authentication
+            HttpServletRequest req
     ) {
-        Long userId = getUserFromAuthentication(authentication);
+        Long userId = getUserId(req);
         cartService.clearCart(userId);
         return ResponseEntity.noContent().build();
     }
 
-    // TODO: реализовать извлечение айди из токена (использовать вместо аутентификации токен)
-    private Long getUserFromAuthentication(Authentication authentication) {
-        return (Long) authentication.getPrincipal();
+    private Long getUserId(HttpServletRequest req) {
+        Long userId = (Long) req.getAttribute("userId");
+        if (userId != null) {
+            return userId;
+        }
+
+        throw new IllegalStateException("User id could not be found");
     }
 }

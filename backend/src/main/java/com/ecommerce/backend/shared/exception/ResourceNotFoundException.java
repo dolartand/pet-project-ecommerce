@@ -1,8 +1,14 @@
 package com.ecommerce.backend.shared.exception;
 
-public class ResourceNotFoundException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class ResourceNotFoundException extends ApplicationException {
     public ResourceNotFoundException(String message) {
-        super(message);
+        super(message, "RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND);
+    }
+
+    public  ResourceNotFoundException(String message, String errorCode) {
+        super(message, errorCode, HttpStatus.NOT_FOUND);
     }
 
     public static ResourceNotFoundException product(Long id) {

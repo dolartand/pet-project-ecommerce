@@ -8,11 +8,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
+@PreAuthorize("hasRole('USER')")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
@@ -21,7 +23,7 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/profile")
-    public ResponseEntity<UserProfileResponse>  getCurrentUserProfile(HttpServletRequest request) {
+    public ResponseEntity<UserProfileResponse> getCurrentUserProfile(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         UserProfileResponse profile = userService.getCurrentUserProfile(userId);
         return ResponseEntity.ok(profile);
