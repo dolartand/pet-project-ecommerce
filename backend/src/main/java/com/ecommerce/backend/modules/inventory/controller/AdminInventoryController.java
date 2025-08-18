@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/api/admin/inventory")
 @RequiredArgsConstructor
@@ -41,9 +43,9 @@ public class AdminInventoryController {
     public ResponseEntity<InventoryDto> updateInventory(
             @PathVariable("productId") Long productId,
             @Valid @RequestBody InventoryUpdateRequest req,
-            @CurrentUser String username
+            Principal principal
     ) {
-        return ResponseEntity.ok(inventoryService.updateInventory(productId, req, username));
+        return ResponseEntity.ok(inventoryService.updateInventory(productId, req, principal.getName()));
     }
 
     @GetMapping("/{productId}/history")
