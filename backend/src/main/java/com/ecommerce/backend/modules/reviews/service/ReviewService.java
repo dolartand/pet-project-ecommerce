@@ -12,6 +12,8 @@ import com.ecommerce.backend.modules.user.repository.UserRepository;
 import com.ecommerce.backend.shared.exception.BusinessException;
 import com.ecommerce.backend.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,13 +66,13 @@ public class ReviewService {
     }
 
     @Transactional
-    public List<ReviewResponse> getReviewsByProductId(Long productId) {
+    public Page<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable) {
         if (!productRepository.existsById(productId)) {
             throw ResourceNotFoundException.product(productId);
         }
 
-        return reviewRepository.findByProductId(productId).stream()
-                .map(ReviewResponse::fromEntity)
-                .collect(Collectors.toList());
+        Page<Review> reviews = reviewRepository.findByProductId(productId, pageable);
+
+        return reviews.map(ReviewResponse::fromEntity);
     }
 }
