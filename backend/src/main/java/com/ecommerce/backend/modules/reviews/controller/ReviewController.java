@@ -6,6 +6,8 @@ import com.ecommerce.backend.modules.reviews.dto.ReviewResponse;
 import com.ecommerce.backend.modules.reviews.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,10 +35,11 @@ public class ReviewController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ReviewResponse>> getReviewsByProductId(
-            @PathVariable Long productId
+    public ResponseEntity<Page<ReviewResponse>> getReviewsByProductId(
+            @PathVariable Long productId,
+            Pageable pageable
     ) {
-        List<ReviewResponse> reviews = reviewService.getReviewsByProductId(productId);
+        Page<ReviewResponse> reviews = reviewService.getReviewsByProductId(productId,  pageable);
         return ResponseEntity.ok(reviews);
     }
 }
