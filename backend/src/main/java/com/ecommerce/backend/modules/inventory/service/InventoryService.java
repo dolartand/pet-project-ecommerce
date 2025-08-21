@@ -178,8 +178,7 @@ public class InventoryService {
 
             if (inventory.getAvailableQuantity() < quantity) {
                 throw new BusinessException(
-                        "Недостаточно товара на складе. Доступно: " + inventory.getAvailableQuantity() +
-                                ", требуется: " + quantity,
+                        "Out of stock",
                         "INSUFFICIENT_STOCK"
                 );
             }

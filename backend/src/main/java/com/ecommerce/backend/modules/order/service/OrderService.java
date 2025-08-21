@@ -73,8 +73,7 @@ public class OrderService {
                 .build();
 
         Map<Long, Integer> productQuantities = cart.getItems().stream()
-                        .collect(Collectors.toMap(cartItem -> cartItem.getProduct().getId(),
-                                cartItem -> cartItem.getQuantity()));
+                .collect(Collectors.toMap(item -> item.getProduct().getId(), item -> item.getQuantity()));
 
         cart.getItems().forEach(cartItem -> {
             OrderItem orderItem = OrderItem.builder()
@@ -83,7 +82,6 @@ public class OrderService {
                     .quantity(cartItem.getQuantity())
                     .priceAtTime(cartItem.getProduct().getPrice())
                     .build();
-
             order.addItem(orderItem);
         });
 
@@ -122,10 +120,10 @@ public class OrderService {
     @Transactional(readOnly = true)
     public OrderDto getOrderById(String userEmail, Long orderId) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
 
         Order order = ordersRepository.findByIdAndUser(orderId, user)
-                .orElseThrow(() -> new ResourceNotFoundException("Заказ не найден"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
         return mapOrderToDto(order);
     }
@@ -143,7 +141,6 @@ public class OrderService {
         }
 
         order.setStatus(OrderStatus.CANCELLED);
-
         Order savedOrder = ordersRepository.save(order);
 
         inventoryService.cancelReservation(savedOrder.getId(), userEmail);
@@ -212,6 +209,8 @@ public class OrderService {
             if (oldStatus == OrderStatus.PENDING || oldStatus == OrderStatus.COMFIRMED) {
                 inventoryService.cancelReservation(savedOrder.getId(), adminEmail);
             }
+        } else if (oldStatus == OrderStatus.COMFIRMED && newStatus == OrderStatus.SHIPPED) {
+            inventoryService.confirmReservation(savedOrder.getId(), adminEmail);
         }
 
         // TODO: Добавить отправку события в Rabbit
@@ -241,9 +240,9 @@ public class OrderService {
     private BigDecimal calculateTotal(Cart cart) {
         return cart.getItems().stream()
                 .map(item -> {
-                    Product product = productRepository.findById(item.getId())
+                    Product product = productRepository.findById(item.getProduct().getId())
                             .orElseThrow(() ->
-                                    new ResourceNotFoundException("Item not found with id: " + item.getId()));
+                                    new ResourceNotFoundException("Item not found with id: " + item.getProduct().getId()));
                     return product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
