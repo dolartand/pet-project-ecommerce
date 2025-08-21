@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -71,27 +72,24 @@ public class OrderService {
                 .comment(request.getComment())
                 .build();
 
+        Map<Long, Integer> productQuantities = cart.getItems().stream()
+                        .collect(Collectors.toMap(cartItem -> cartItem.getProduct().getId(),
+                                cartItem -> cartItem.getQuantity()));
+
         cart.getItems().forEach(cartItem -> {
-            Product product = productRepository.findById(cartItem.getProduct().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Product not found with id: " + cartItem.getProduct().getId())
-                    );
             OrderItem orderItem = OrderItem.builder()
-                    .productId(product.getId())
-                    .productName(product.getName())
+                    .productId(cartItem.getProduct().getId())
+                    .productName(cartItem.getProduct().getName())
                     .quantity(cartItem.getQuantity())
-                    .priceAtTime(product.getPrice())
+                    .priceAtTime(cartItem.getProduct().getPrice())
                     .build();
 
             order.addItem(orderItem);
-
-            InventoryUpdateRequest inventoryRequest = new InventoryUpdateRequest();
-            inventoryRequest.setQuantity(cartItem.getQuantity() * (-1));
-
-            inventoryService.updateInventory(product.getId(), inventoryRequest, userEmail);
         });
 
         Order savedOrder = ordersRepository.save(order);
+
+        inventoryService.reserveProduct(savedOrder.getId(), productQuantities, userEmail);
 
         cartService.clearCart(user.getId());
 
@@ -146,13 +144,9 @@ public class OrderService {
 
         order.setStatus(OrderStatus.CANCELLED);
 
-        order.getItems().forEach(cartItem -> {
-            InventoryUpdateRequest inventoryRequest = new InventoryUpdateRequest();
-            inventoryRequest.setQuantity(cartItem.getQuantity());
-            inventoryService.updateInventory(order.getId(), inventoryRequest, userEmail);
-        });
-
         Order savedOrder = ordersRepository.save(order);
+
+        inventoryService.cancelReservation(savedOrder.getId(), userEmail);
 
         // TODO: Добавить отправку события в Rabbit
 
@@ -212,16 +206,13 @@ public class OrderService {
         validateStatusTransition(oldStatus, newStatus);
 
         order.setStatus(newStatus);
+        Order savedOrder = ordersRepository.save(order);
 
-        if (oldStatus != OrderStatus.CANCELLED && newStatus != OrderStatus.CANCELLED) {
-            order.getItems().forEach(cartItem -> {
-                InventoryUpdateRequest inventoryRequest = new InventoryUpdateRequest();
-                inventoryRequest.setQuantity(cartItem.getQuantity());
-                inventoryService.updateInventory(cartItem.getProductId(), inventoryRequest, adminEmail);
-            });
+        if (newStatus == OrderStatus.CANCELLED) {
+            if (oldStatus == OrderStatus.PENDING || oldStatus == OrderStatus.COMFIRMED) {
+                inventoryService.cancelReservation(savedOrder.getId(), adminEmail);
+            }
         }
-
-        Order savedOrder =  ordersRepository.save(order);
 
         // TODO: Добавить отправку события в Rabbit
 

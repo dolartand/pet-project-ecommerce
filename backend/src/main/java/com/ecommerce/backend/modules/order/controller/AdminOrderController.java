@@ -38,7 +38,7 @@ public class AdminOrderController {
         }
     }
 
-    @GetMapping("/{orderId}")
+    @PutMapping("/{orderId}")
     public ResponseEntity<OrderDto> updateOrderStatus(
             @PathVariable Long orderId,
             @Valid @RequestBody OrderStatusUpdateRequest request,
