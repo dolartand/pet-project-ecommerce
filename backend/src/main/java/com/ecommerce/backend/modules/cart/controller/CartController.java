@@ -53,6 +53,13 @@ public class CartController {
             HttpServletRequest req
     ) {
         Long userId = getUserId(req);
+        CartResponseDto cart = cartService.removeItemFromCart(userId, itemId);
+        return ResponseEntity.ok(cart);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> clearCart(HttpServletRequest req) {
+        Long userId = getUserId(req);
         cartService.clearCart(userId);
         return ResponseEntity.noContent().build();
     }
