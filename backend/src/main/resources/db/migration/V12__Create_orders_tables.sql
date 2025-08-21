@@ -7,8 +7,8 @@ CREATE TABLE orders (
     shipping_city VARCHAR(100) NOT NULL,
     shipping_postal_code VARCHAR(6) NOT NULL,
     comment VARCHAR(500),
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT current_timestamp,
+    updated_at TIMESTAMP NOT NULL DEFAULT current_timestamp,
     CONSTRAINT fk_orders_user FOREIGN KEY (user_id)
         REFERENCES users(id) ON DELETE CASCADE
 );
