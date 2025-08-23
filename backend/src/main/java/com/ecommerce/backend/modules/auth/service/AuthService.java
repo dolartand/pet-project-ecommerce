@@ -14,6 +14,7 @@ import com.ecommerce.backend.shared.exception.UserAlreadyExistsException;
 import com.ecommerce.backend.shared.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,6 +39,7 @@ public class AuthService {
     private final CustomUserDetailsService userDetailsService;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
+    private final RabbitTemplate rabbitTemplate;
 
     public void register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -55,6 +57,7 @@ public class AuthService {
                 .build();
 
         User savedUser = userRepository.save(user);
+        rabbitTemplate.convertAndSend("email.notifications", "", savedUser);
         log.info("User registered successfully: {}", savedUser.getEmail());
     }
 

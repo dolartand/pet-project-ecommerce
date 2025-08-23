@@ -19,6 +19,7 @@ import com.ecommerce.backend.shared.dto.PageInfo;
 import com.ecommerce.backend.shared.exception.BusinessException;
 import com.ecommerce.backend.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,7 @@ public class OrderService {
     private final InventoryService inventoryService;
     private final CartService cartService;
     private final CartRepository cartRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     @Transactional
     public OrderDto createOrder(String userEmail, CreateOrderRequest request) {
@@ -89,9 +91,8 @@ public class OrderService {
 
         inventoryService.reserveProduct(savedOrder.getId(), productQuantities, userEmail);
 
+        rabbitTemplate.convertAndSend("order.events", "", savedOrder);
         cartService.clearCart(user.getId());
-
-        // TODO: Отправка события в Rabbit
 
         return mapOrderToDto(savedOrder);
     }
@@ -143,9 +144,7 @@ public class OrderService {
         order.setStatus(OrderStatus.CANCELLED);
         Order savedOrder = ordersRepository.save(order);
 
-        inventoryService.cancelReservation(savedOrder.getId(), userEmail);
-
-        // TODO: Добавить отправку события в Rabbit
+        rabbitTemplate.convertAndSend("order.events", "", savedOrder);
 
         return mapOrderToDto(savedOrder);
     }
@@ -205,15 +204,7 @@ public class OrderService {
         order.setStatus(newStatus);
         Order savedOrder = ordersRepository.save(order);
 
-        if (newStatus == OrderStatus.CANCELLED) {
-            if (oldStatus == OrderStatus.PENDING || oldStatus == OrderStatus.COMFIRMED) {
-                inventoryService.cancelReservation(savedOrder.getId(), adminEmail);
-            }
-        } else if (oldStatus == OrderStatus.COMFIRMED && newStatus == OrderStatus.SHIPPED) {
-            inventoryService.confirmReservation(savedOrder.getId(), adminEmail);
-        }
-
-        // TODO: Добавить отправку события в Rabbit
+        rabbitTemplate.convertAndSend("order.events", "", savedOrder);
 
         return mapOrderToDto(savedOrder);
     }
