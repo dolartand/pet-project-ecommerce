@@ -1,10 +1,10 @@
 package com.ecommerce.backend.modules.order.service;
 
+import com.ecommerce.backend.config.RabbitConfig;
 import com.ecommerce.backend.modules.cart.entity.Cart;
 import com.ecommerce.backend.modules.cart.entity.CartItem;
 import com.ecommerce.backend.modules.cart.repository.CartRepository;
 import com.ecommerce.backend.modules.cart.service.CartService;
-import com.ecommerce.backend.modules.inventory.service.InventoryService;
 import com.ecommerce.backend.modules.order.dto.CreateOrderRequest;
 import com.ecommerce.backend.modules.order.dto.OrderStatusUpdateRequest;
 import com.ecommerce.backend.modules.order.entity.Order;
@@ -15,19 +15,23 @@ import com.ecommerce.backend.modules.product.repository.ProductRepository;
 import com.ecommerce.backend.modules.user.entity.User;
 import com.ecommerce.backend.modules.user.repository.UserRepository;
 import com.ecommerce.backend.shared.dto.AddressDto;
+import com.ecommerce.backend.shared.events.BaseEvent;
+import com.ecommerce.backend.shared.events.OrderCreatedEvent;
+import com.ecommerce.backend.shared.events.OrderStatusChangedEvent;
+import com.ecommerce.backend.shared.outbox.EventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.Map;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,7 +44,7 @@ class OrderServiceTest {
     @Mock
     private ProductRepository productRepository;
     @Mock
-    private InventoryService inventoryService;
+    private EventPublisher eventPublisher;
     @Mock
     private CartService cartService;
     @Mock
@@ -75,12 +79,11 @@ class OrderServiceTest {
     }
 
     @Test
-    void createOrder_shouldReserveInventory() {
+    void createOrder_shouldPublishOrderCreatedEvent() {
         CreateOrderRequest request = new CreateOrderRequest(new AddressDto(), "comment");
         when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(user));
         when(cartRepository.findByUserIdWithItems(user.getId())).thenReturn(Optional.of(cart));
         when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));
-
         when(ordersRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order orderToSave = invocation.getArgument(0);
             orderToSave.setId(1L);
@@ -89,12 +92,14 @@ class OrderServiceTest {
 
         orderService.createOrder(userEmail, request);
 
-        verify(inventoryService).reserveProduct(eq(1L), any(Map.class), eq(userEmail));
+        ArgumentCaptor<BaseEvent> eventCaptor = ArgumentCaptor.forClass(BaseEvent.class);
+        verify(eventPublisher).publish(eventCaptor.capture(), eq(RabbitConfig.ORDER_EVENTS_EXCHANGE), eq("order.created"));
+        assertThat(eventCaptor.getValue()).isInstanceOf(OrderCreatedEvent.class);
         verify(cartService).clearCart(user.getId());
     }
 
     @Test
-    void closeOrder_shouldReleaseInventory() {
+    void closeOrder_shouldPublishOrderStatusChangedEvent() {
         Order order = new Order();
         order.setId(1L);
         order.setUser(user);
@@ -105,15 +110,21 @@ class OrderServiceTest {
 
         orderService.closeOrder(userEmail, order.getId());
 
-        verify(inventoryService).cancelReservation(order.getId(), userEmail);
+        ArgumentCaptor<BaseEvent> eventCaptor = ArgumentCaptor.forClass(BaseEvent.class);
+        verify(eventPublisher).publish(eventCaptor.capture(), eq(RabbitConfig.ORDER_EVENTS_EXCHANGE), eq("order.status.changed"));
+
+        OrderStatusChangedEvent capturedEvent = (OrderStatusChangedEvent) eventCaptor.getValue();
+        assertThat(capturedEvent.getOrder().getStatus()).isEqualTo(OrderStatus.CANCELLED);
+        assertThat(capturedEvent.getOldStatus()).isEqualTo(OrderStatus.PENDING);
     }
 
     @Test
-    void updateOrderStatus_toShipped_shouldConfirmReservation() {
+    void updateOrderStatus_shouldPublishOrderStatusChangedEvent() {
         Order order = new Order();
         order.setId(1L);
         order.setUser(user);
         order.setStatus(OrderStatus.COMFIRMED);
+
         OrderStatusUpdateRequest request = new OrderStatusUpdateRequest();
         request.setStatus(OrderStatus.SHIPPED);
 
@@ -122,25 +133,11 @@ class OrderServiceTest {
 
         orderService.updateOrderStatus(order.getId(), request, userEmail);
 
-        verify(inventoryService).confirmReservation(order.getId(), userEmail);
-        verify(inventoryService, never()).cancelReservation(anyLong(), anyString());
-    }
+        ArgumentCaptor<BaseEvent> eventCaptor = ArgumentCaptor.forClass(BaseEvent.class);
+        verify(eventPublisher).publish(eventCaptor.capture(), eq(RabbitConfig.ORDER_EVENTS_EXCHANGE), eq("order.status.changed"));
 
-    @Test
-    void updateOrderStatus_toCancelled_shouldCancelReservation() {
-        Order order = new Order();
-        order.setId(1L);
-        order.setUser(user);
-        order.setStatus(OrderStatus.PENDING);
-        OrderStatusUpdateRequest request = new OrderStatusUpdateRequest();
-        request.setStatus(OrderStatus.CANCELLED);
-
-        when(ordersRepository.findById(order.getId())).thenReturn(Optional.of(order));
-        when(ordersRepository.save(any(Order.class))).thenReturn(order);
-
-        orderService.updateOrderStatus(order.getId(), request, userEmail);
-
-        verify(inventoryService).cancelReservation(order.getId(), userEmail);
-        verify(inventoryService, never()).confirmReservation(anyLong(), anyString());
+        OrderStatusChangedEvent capturedEvent = (OrderStatusChangedEvent) eventCaptor.getValue();
+        assertThat(capturedEvent.getOrder().getStatus()).isEqualTo(OrderStatus.SHIPPED);
+        assertThat(capturedEvent.getOldStatus()).isEqualTo(OrderStatus.COMFIRMED);
     }
 }

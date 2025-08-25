@@ -1,5 +1,6 @@
 package com.ecommerce.backend.modules.order.service;
 
+import com.ecommerce.backend.config.RabbitConfig;
 import com.ecommerce.backend.modules.cart.entity.Cart;
 import com.ecommerce.backend.modules.cart.repository.CartRepository;
 import com.ecommerce.backend.modules.cart.service.CartService;
@@ -16,8 +17,11 @@ import com.ecommerce.backend.modules.user.entity.User;
 import com.ecommerce.backend.modules.user.repository.UserRepository;
 import com.ecommerce.backend.shared.dto.AddressDto;
 import com.ecommerce.backend.shared.dto.PageInfo;
+import com.ecommerce.backend.shared.events.OrderCreatedEvent;
+import com.ecommerce.backend.shared.events.OrderStatusChangedEvent;
 import com.ecommerce.backend.shared.exception.BusinessException;
 import com.ecommerce.backend.shared.exception.ResourceNotFoundException;
+import com.ecommerce.backend.shared.outbox.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
@@ -37,10 +41,9 @@ public class OrderService {
     private final OrdersRepository ordersRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
-    private final InventoryService inventoryService;
     private final CartService cartService;
     private final CartRepository cartRepository;
-    private final RabbitTemplate rabbitTemplate;
+    private final EventPublisher eventPublisher;
 
     @Transactional
     public OrderDto createOrder(String userEmail, CreateOrderRequest request) {
@@ -89,9 +92,9 @@ public class OrderService {
 
         Order savedOrder = ordersRepository.save(order);
 
-        inventoryService.reserveProduct(savedOrder.getId(), productQuantities, userEmail);
+        OrderCreatedEvent event = new OrderCreatedEvent(savedOrder);
+        eventPublisher.publish(event, RabbitConfig.ORDER_EVENTS_EXCHANGE, "order.created");
 
-        rabbitTemplate.convertAndSend("order.events", "", savedOrder);
         cartService.clearCart(user.getId());
 
         return mapOrderToDto(savedOrder);
@@ -129,7 +132,7 @@ public class OrderService {
         return mapOrderToDto(order);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public OrderDto closeOrder(String userEmail, Long orderId) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
@@ -141,10 +144,12 @@ public class OrderService {
             throw new BusinessException("Order cannot be closed", "ORDER_CLOSING_ERROR");
         }
 
+        OrderStatus oldStatus = order.getStatus();
         order.setStatus(OrderStatus.CANCELLED);
         Order savedOrder = ordersRepository.save(order);
 
-        rabbitTemplate.convertAndSend("order.events", "", savedOrder);
+        OrderStatusChangedEvent event = new OrderStatusChangedEvent(savedOrder, oldStatus);
+        eventPublisher.publish(event, RabbitConfig.ORDER_EVENTS_EXCHANGE, "order.status.changed");
 
         return mapOrderToDto(savedOrder);
     }
@@ -204,7 +209,8 @@ public class OrderService {
         order.setStatus(newStatus);
         Order savedOrder = ordersRepository.save(order);
 
-        rabbitTemplate.convertAndSend("order.events", "", savedOrder);
+        OrderStatusChangedEvent event = new OrderStatusChangedEvent(savedOrder, oldStatus);
+        eventPublisher.publish(event, RabbitConfig.ORDER_EVENTS_EXCHANGE, "order.status.changed");
 
         return mapOrderToDto(savedOrder);
     }

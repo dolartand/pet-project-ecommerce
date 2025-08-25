@@ -1,33 +1,101 @@
 package com.ecommerce.backend.modules.notification.service;
 
-import com.ecommerce.backend.modules.cart.entity.Cart;
-import com.ecommerce.backend.modules.order.entity.Order;
-import com.ecommerce.backend.modules.user.entity.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.ecommerce.backend.config.RabbitConfig;
+import com.ecommerce.backend.shared.events.BaseEvent;
+import com.ecommerce.backend.shared.events.CartAbandonedEvent;
+import com.ecommerce.backend.shared.events.OrderCreatedEvent;
+import com.ecommerce.backend.shared.events.OrderStatusChangedEvent;
+import com.ecommerce.backend.shared.events.UserRegisteredEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class NotificationService {
 
-    public static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
+    private final ObjectMapper objectMapper;
+    private final Set<String> processedEventIds = Collections.synchronizedSet(new HashSet<>());
 
-    @RabbitListener(queues = "email.notifications")
-    public void handleUserRgistration(User user) {
-        logger.info("Received email registration event for user: " + user.getEmail());
+    @RabbitListener(queues = RabbitConfig.USER_REGISTRATION_NOTIFICATIONS_QUEUE)
+    @Retryable(retryFor = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
+    public void handleUserRegistration(@Payload String eventJson) throws JsonProcessingException {
+        UserRegisteredEvent event = deserializeEvent(eventJson, UserRegisteredEvent.class);
+        if (isEventAlreadyProcessed(event.getEventId())) {
+            log.warn("User registration event {} already processed. Skipping.", event.getEventId());
+            return;
+        }
+
+        log.info("Sending registration confirmation for user: {}", event.getUserEmail());
         // TODO: Реализовать отправку подтверждения по почте
+        System.out.println("SIMULATING: Sending registration email to " + event.getUserEmail());
     }
 
-    @RabbitListener(queues = "order.notifications")
-    public void handleOrderEvent(Order order) {
-        logger.info("Received order event for notification: Order ID {}, Status {}", order.getId(), order.getStatus());
-        // TODO: Реализовать отправку подтверждения по почте учитывая статус заказа
+    @RabbitListener(queues = RabbitConfig.ORDER_NOTIFICATIONS_QUEUE)
+    @Retryable(retryFor = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
+    public void handleOrderEvent(@Payload String eventJson) throws JsonProcessingException {
+        BaseEvent baseEvent = objectMapper.readValue(eventJson, BaseEvent.class);
+        if (isEventAlreadyProcessed(baseEvent.getEventId())) {
+            log.warn("Order event {} already processed. Skipping.", baseEvent.getEventId());
+            return;
+        }
+
+        if (baseEvent.getEventType().equals(OrderCreatedEvent.class.getSimpleName())) {
+            OrderCreatedEvent event = objectMapper.readValue(eventJson, OrderCreatedEvent.class);
+            log.info("Sending order creation notification for order ID: {}", event.getAggregateId());
+            // TODO: Реализовать отправку подтверждения по почте
+            System.out.println("SIMULATING: Sending order created email for order " + event.getAggregateId());
+        } else if (baseEvent.getEventType().equals(OrderStatusChangedEvent.class.getSimpleName())) {
+            OrderStatusChangedEvent event = objectMapper.readValue(eventJson, OrderStatusChangedEvent.class);
+            log.info("Sending order status change notification for order ID: {}. New status: {}", event.getAggregateId(), event.getOrder().getStatus());
+            // TODO: Реализовать отправку подтверждения по почте
+            System.out.println("SIMULATING: Sending order status update email for order " + event.getAggregateId());
+        }
     }
 
-    @RabbitListener(queues = "cart.abandoned.notifications")
-    public void handleAbandonedCartEvent(Cart cart) {
-        logger.info("Received abandoned cart event for notification: Cart ID {}", cart.getId());
-        // TODO: Реализовать отправку подтверждения по почте для забытых корзин
+    @RabbitListener(queues = RabbitConfig.CART_ABANDONED_NOTIFICATIONS_QUEUE)
+    @Retryable(retryFor = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
+    public void handleAbandonedCartEvent(@Payload String eventJson) throws JsonProcessingException {
+        CartAbandonedEvent event = deserializeEvent(eventJson, CartAbandonedEvent.class);
+        if (isEventAlreadyProcessed(event.getEventId())) {
+            log.warn("Cart abandoned event {} already processed. Skipping.", event.getEventId());
+            return;
+        }
+
+        log.info("Sending abandoned cart reminder for cart ID: {}", event.getAggregateId());
+        // TODO: Реализовать отправку подтверждения по почте
+        System.out.println("SIMULATING: Sending abandoned cart reminder for cart " + event.getAggregateId());
+    }
+
+    @Recover
+    public void recover(Exception e, String eventJson) {
+        log.error("All retries failed for notification event. Moving to DLQ. Error: {}, Event: {}", e.getMessage(), eventJson);
+        throw new AmqpRejectAndDontRequeueException("Notification processing failed permanently.", e);
+    }
+
+    private <T extends BaseEvent> T deserializeEvent(String json, Class<T> eventType) throws JsonProcessingException {
+        try {
+            return objectMapper.readValue(json, eventType);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to deserialize event JSON: {}", json, e);
+            throw e;
+        }
+    }
+
+    private boolean isEventAlreadyProcessed(String eventId) {
+        return !processedEventIds.add(eventId);
     }
 }

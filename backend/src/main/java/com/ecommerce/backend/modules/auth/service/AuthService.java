@@ -1,5 +1,6 @@
 package com.ecommerce.backend.modules.auth.service;
 
+import com.ecommerce.backend.config.RabbitConfig;
 import com.ecommerce.backend.modules.auth.jwt.CustomUserDetails;
 import com.ecommerce.backend.modules.auth.jwt.CustomUserDetailsService;
 import com.ecommerce.backend.modules.auth.jwt.JwtUtils;
@@ -8,10 +9,12 @@ import com.ecommerce.backend.modules.user.entity.User;
 import com.ecommerce.backend.modules.user.entity.UserRole;
 import com.ecommerce.backend.modules.user.repository.UserRepository;
 import com.ecommerce.backend.shared.dto.*;
+import com.ecommerce.backend.shared.events.UserRegisteredEvent;
 import com.ecommerce.backend.shared.exception.InvalidCredentialsException;
 import com.ecommerce.backend.shared.exception.InvalidTokenException;
 import com.ecommerce.backend.shared.exception.UserAlreadyExistsException;
 import com.ecommerce.backend.shared.exception.UserNotFoundException;
+import com.ecommerce.backend.shared.outbox.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -40,6 +43,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
     private final RabbitTemplate rabbitTemplate;
+    private final EventPublisher eventPublisher;
 
     public void register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -57,7 +61,10 @@ public class AuthService {
                 .build();
 
         User savedUser = userRepository.save(user);
-        rabbitTemplate.convertAndSend("email.notifications", "", savedUser);
+
+        UserRegisteredEvent event = new UserRegisteredEvent(savedUser);
+        eventPublisher.publish(event, RabbitConfig.USER_EVENTS_EXCHANGE, "user.registered");
+
         log.info("User registered successfully: {}", savedUser.getEmail());
     }
 

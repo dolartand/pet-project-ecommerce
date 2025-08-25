@@ -3,6 +3,8 @@ package com.ecommerce.backend.modules.cart.service;
 import com.ecommerce.backend.config.RabbitConfig;
 import com.ecommerce.backend.modules.cart.entity.Cart;
 import com.ecommerce.backend.modules.cart.repository.CartRepository;
+import com.ecommerce.backend.shared.events.CartAbandonedEvent;
+import com.ecommerce.backend.shared.outbox.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -19,10 +21,10 @@ import java.util.List;
 public class AbandonedCartService {
 
     private final CartRepository cartRepository;
-    private final RabbitTemplate rabbitTemplate;
+    private final EventPublisher eventPublisher;
 
     @Scheduled(cron = "0 0 * * * *")
-    @Transactional(readOnly = true)
+    @Transactional
     public void findAndNotifyAbandonedCarts() {
         log.info("Running scheduled findAndNotifyAbandonedCarts...");
         LocalDateTime endTime = LocalDateTime.now().minusHours(24);
@@ -37,7 +39,8 @@ public class AbandonedCartService {
 
         log.info("Found {} abandoned carts", abandonedCarts.size());
         for (Cart cart : abandonedCarts) {
-            rabbitTemplate.convertAndSend(RabbitConfig.CART_ABANDONED_QUEUE, cart);
+            CartAbandonedEvent event = new  CartAbandonedEvent(cart);
+            eventPublisher.publish(event, RabbitConfig.CART_EVENTS_EXCHANGE, "cart.abandoned");
             log.debug("Sending CART_ABANDONED event for cart with id: {}", cart.getId());
         }
         log.info("Finished scheduled findAndNotifyAbandonedCarts...");

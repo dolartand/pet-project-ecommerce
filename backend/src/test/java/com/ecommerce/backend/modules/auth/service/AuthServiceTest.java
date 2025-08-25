@@ -12,6 +12,7 @@ import com.ecommerce.backend.modules.user.sevice.UserService;
 import com.ecommerce.backend.shared.dto.*;
 import com.ecommerce.backend.shared.exception.InvalidCredentialsException;
 import com.ecommerce.backend.shared.exception.UserAlreadyExistsException;
+import com.ecommerce.backend.shared.outbox.EventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,6 +48,8 @@ public class AuthServiceTest {
     private RefreshTokenService refreshTokenService;
     @Mock
     private CustomUserDetailsService customUserDetailsService;
+    @Mock
+    private EventPublisher eventPublisher;
 
     @InjectMocks
     private AuthService authService;
@@ -83,6 +86,7 @@ public class AuthServiceTest {
         authService.register(registerRequest);
 
         verify(userRepository, times(1)).save(any(User.class));
+        verify(eventPublisher, times(1)).publish(any(), anyString(), anyString());
     }
 
     @Test
