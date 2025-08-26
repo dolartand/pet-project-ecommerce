@@ -1,5 +1,6 @@
 package com.ecommerce.backend.modules.product.service;
 
+import com.ecommerce.backend.config.CacheConfig;
 import com.ecommerce.backend.modules.category.repository.CategoryRepository;
 import com.ecommerce.backend.modules.product.dto.CreateProductRequest;
 import com.ecommerce.backend.modules.product.dto.ProductResponse;
@@ -11,6 +12,10 @@ import com.ecommerce.backend.shared.exception.ResourceNotFoundException;
 import com.ecommerce.backend.shared.exception.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +34,8 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
 
+    @Cacheable(value = CacheConfig.CACHE_PRODUCTS, key = "#request.toString() + #pageable.toString()",
+            condition = "#request.search == null && #request.categoryId == null && #pageable.getPageNumber() < 3")
     public Page<ProductResponse> searchProducts(ProductSearchRequest request, Pageable pageable) {
         log.debug("Searching products with filters: {}", request);
 
@@ -50,6 +57,7 @@ public class ProductService {
         return products.map(this::mapToResponse);
     }
 
+    @Cacheable(value = CacheConfig.CACHE_PRODUCT_DETAILS, key = "#id")
     public ProductResponse getProductById(Long id) {
         log.debug("Getting product with id: {}", id);
         Product product = productRepository.findById(id)
@@ -59,6 +67,7 @@ public class ProductService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = CacheConfig.CACHE_PRODUCTS, allEntries = true)
     public ProductResponse createProduct(CreateProductRequest request) {
         log.info("Creating new product: {}", request.getName());
 
@@ -82,6 +91,10 @@ public class ProductService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
+    @Caching(
+            put = { @CachePut(value = CacheConfig.CACHE_PRODUCT_DETAILS, key = "#id") },
+            evict = { @CacheEvict(value = CacheConfig.CACHE_PRODUCTS, allEntries = true) }
+    )
     public ProductResponse updateProduct(Long id, UpdateProductRequest request) {
         log.info("Updating product with id: {}", id);
 
@@ -98,6 +111,10 @@ public class ProductService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.CACHE_PRODUCTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.CACHE_PRODUCT_DETAILS, key = "#id")
+    })
     public void deleteProduct(Long id) {
         log.info("Deleting product with id: {}", id);
 
@@ -110,6 +127,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheConfig.CACHE_PRODUCT_DETAILS, key = "#id")
     public void updateProductRating(Long id, BigDecimal newRating) {
         log.info("Updating product rating with id: {}", id);
         productRepository.updateRating(id, newRating);

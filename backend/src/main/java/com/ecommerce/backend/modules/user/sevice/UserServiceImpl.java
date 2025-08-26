@@ -1,5 +1,7 @@
 package com.ecommerce.backend.modules.user.sevice;
 
+import com.ecommerce.backend.config.CacheConfig;
+import com.ecommerce.backend.modules.order.service.OrderService;
 import com.ecommerce.backend.modules.user.dto.AdminUserDto;
 import com.ecommerce.backend.modules.user.dto.ChangePasswordRequest;
 import com.ecommerce.backend.modules.user.dto.UpdateProfileRequest;
@@ -11,6 +13,9 @@ import com.ecommerce.backend.shared.exception.UserNotFoundException;
 import com.ecommerce.backend.shared.exception.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,9 +33,11 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final OrderService orderService;
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.CACHE_USER_PROFILE, key = "#userId")
     public UserProfileResponse getCurrentUserProfile(Long userId) {
         User user = findUserById(userId);
 
@@ -46,6 +53,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CachePut(value = CacheConfig.CACHE_USER_PROFILE, key = "#userId")
     public UserProfileResponse updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {
         User user = findUserById(userId);
 
@@ -72,6 +80,7 @@ public class UserServiceImpl implements UserService {
      * На данный момент метод не используется, так как реализуется базовый функционал
      */
     @Override
+    @CacheEvict(value = CacheConfig.CACHE_USER_PROFILE, key = "#userId")
     public void changePassword(Long userId, ChangePasswordRequest request) {
         if (!request.getNewPassword().equals(request.getNewPasswordConfirm())) {
             throw new ValidationException("Пароли не совпадают");
@@ -108,7 +117,7 @@ public class UserServiceImpl implements UserService {
                 .role(user.getRole())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
-                .totalOrders(0) // TODO: Подсчитать из модуля заказов
+                .totalOrders(orderService.getUserOrders(user.getEmail(), pageable).getContent().size())
                 .build()
         );
     }
@@ -121,6 +130,8 @@ public class UserServiceImpl implements UserService {
     public AdminUserDto getUserById(Long userId) {
         User user = findUserById(userId);
 
+        int totalUserOrders = orderService.getUserOrders(user.getEmail(), Pageable.unpaged()).getContent().size();
+
         return AdminUserDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -129,7 +140,7 @@ public class UserServiceImpl implements UserService {
                 .role(user.getRole())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
-                .totalOrders(0) // TODO: Подсчитать из модуля заказов
+                .totalOrders(totalUserOrders)
                 .build();
     }
 

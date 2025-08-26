@@ -1,5 +1,6 @@
 package com.ecommerce.backend.modules.category.service;
 
+import com.ecommerce.backend.config.CacheConfig;
 import com.ecommerce.backend.modules.category.dto.CategoryDto;
 import com.ecommerce.backend.modules.category.dto.CategoryRequest;
 import com.ecommerce.backend.modules.category.dto.CategoryResponse;
@@ -9,6 +10,8 @@ import com.ecommerce.backend.shared.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
 
     @Override
+    @Cacheable(CacheConfig.CACHE_CATEGORIES)
     public List<CategoryResponse> getAllRootCategories() {
         return categoryRepository.findByParentIsNull().stream()
                 .map(this::mapToResponse)
@@ -32,6 +36,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.CACHE_CATEGORIES, key = "#id")
     public CategoryResponse getCategoryById(Long id) {
         return categoryRepository.findById(id)
                 .map(this::mapToResponse)
@@ -40,6 +45,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = CacheConfig.CACHE_CATEGORIES, allEntries = true)
     public CategoryResponse createCategory(CategoryRequest request) {
         Category  category = new Category();
         category.setName(request.getName());
@@ -58,6 +64,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = CacheConfig.CACHE_CATEGORIES, allEntries = true)
     public CategoryResponse updateCategory(Long id, CategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No such category with id: " + id));
@@ -75,6 +82,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = CacheConfig.CACHE_CATEGORIES, allEntries = true)
     public void deleteCategory(Long id) {
         if (!categoryRepository.existsById(id)) throw new EntityNotFoundException("No such category with id: " + id);
         categoryRepository.deleteById(id);

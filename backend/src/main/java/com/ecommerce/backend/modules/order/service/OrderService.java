@@ -1,5 +1,6 @@
 package com.ecommerce.backend.modules.order.service;
 
+import com.ecommerce.backend.config.CacheConfig;
 import com.ecommerce.backend.config.RabbitConfig;
 import com.ecommerce.backend.modules.cart.entity.Cart;
 import com.ecommerce.backend.modules.cart.repository.CartRepository;
@@ -24,6 +25,9 @@ import com.ecommerce.backend.shared.exception.ResourceNotFoundException;
 import com.ecommerce.backend.shared.outbox.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,6 +51,7 @@ public class OrderService {
     private final EventPublisher eventPublisher;
 
     @Transactional
+    @CacheEvict(value = CacheConfig.CACHE_ORDERS, allEntries = true)
     public OrderDto createOrder(String userEmail, CreateOrderRequest request) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
@@ -102,6 +107,7 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.CACHE_ORDERS, key = "#userEmail + '_' + #pageable.pageNumber", condition = "#pageable.pageNumber == 0")
     public OrdersPage getUserOrders(String userEmail, Pageable pageable) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
@@ -123,6 +129,7 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.CACHE_ORDERS, key = "'user:' + #userEmail + '_order:' + #orderId")
     public OrderDto getOrderById(String userEmail, Long orderId) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
@@ -134,6 +141,10 @@ public class OrderService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.CACHE_ORDERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.CACHE_ORDERS, key = "'user:' + #result.userEmail + '_order' + #orderId")
+    })
     public OrderDto closeOrder(String userEmail, Long orderId) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
@@ -201,6 +212,10 @@ public class OrderService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.CACHE_ORDERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.CACHE_ORDERS, key = "'user:' + #result.userEmail + '_order' + #orderId")
+    })
     public OrderDto updateOrderStatus(Long orderId, OrderStatusUpdateRequest request, String adminEmail) {
         Order order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
