@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -155,6 +156,7 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public OrdersPage getAllOrders(Pageable pageable) {
         Page<Order> ordersPage = ordersRepository.findAll(pageable);
 
@@ -173,6 +175,7 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public OrdersPage getOrderByStatus(OrderStatus orderStatus, Pageable pageable) {
         Page<Order> ordersPage = ordersRepository.findByStatus(orderStatus, pageable);
 
@@ -197,6 +200,7 @@ public class OrderService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public OrderDto updateOrderStatus(Long orderId, OrderStatusUpdateRequest request, String adminEmail) {
         Order order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));

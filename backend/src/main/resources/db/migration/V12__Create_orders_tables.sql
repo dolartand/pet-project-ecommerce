@@ -22,5 +22,5 @@ CREATE TABLE order_items (
     price_at_time DECIMAL(10, 2) NOT NULL,
 
     CONSTRAINT fk_order_items_order FOREIGN KEY (order_id)
-        REFERENCES orders(id) ON DELETE CASCADE
+        REFERENCES orders(id) ON DELETE RESTRICT
 );

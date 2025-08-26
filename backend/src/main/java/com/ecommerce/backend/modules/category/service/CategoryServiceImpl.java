@@ -9,6 +9,7 @@ import com.ecommerce.backend.shared.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public CategoryResponse createCategory(CategoryRequest request) {
         Category  category = new Category();
         category.setName(request.getName());
@@ -55,6 +57,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public CategoryResponse updateCategory(Long id, CategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No such category with id: " + id));
@@ -71,6 +74,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteCategory(Long id) {
         if (!categoryRepository.existsById(id)) throw new EntityNotFoundException("No such category with id: " + id);
         categoryRepository.deleteById(id);

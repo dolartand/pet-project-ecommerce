@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,7 @@ public class InventoryService {
     private final ProductRepository productRepository;
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public InventoryDto getProductInventory(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> ResourceNotFoundException.product(productId));
@@ -42,6 +44,7 @@ public class InventoryService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public InventoryPage getAllInventory(Pageable pageable) {
         Page<Inventory> inventoryPage = inventoryRepository.findAll(pageable);
 
@@ -76,6 +79,7 @@ public class InventoryService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public InventoryDto updateInventory(Long productId, InventoryUpdateRequest request, String username) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> ResourceNotFoundException.product(productId));
@@ -109,6 +113,7 @@ public class InventoryService {
         return mapToDto(savedInventory, product.getName());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public InventoryHistoryPage getInventoryHistory(Long productId, Pageable pageable) {
         if (!productRepository.existsById(productId)) {
             throw ResourceNotFoundException.product(productId);
