@@ -1,6 +1,7 @@
 package com.ecommerce.backend.modules.order.entity;
 
 import com.ecommerce.backend.modules.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -58,6 +59,7 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @JsonManagedReference
     private List<OrderItem> items = new ArrayList<>();
 
     public void addItem(OrderItem item) {
