@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react";
 import ItemCartBuy from "../components/layout/ItemCartBuy";
 import '../styles/ShoppingBag.css';
-import axios from "axios";
+import api from "../api/axios";
 
 interface Product {
     id: number;
@@ -25,7 +25,7 @@ function ShoppingBagPage() {
     },[goods]);
     useEffect(() => {
         setLoading(true);
-        axios.get('http://localhost:8080/api/cart')
+        api.get('/cart')
             .then(res =>{
                 setGoods(res.data);
                 const allItems = res.data.map((item: Product) => item.id);

@@ -1,16 +1,21 @@
 import React, {useState} from "react";
 import '../../styles/Authentication.css';
-import axios from 'axios';
+import api from "../../api/axios";
 
-function SignUpPage() {
+type SignUpPageProps = {
+    onSignUpSuccess: () => void;
+}
+
+function SignUpPage({ onSignUpSuccess }: SignUpPageProps) {
     const [firstName, setFirstName] = useState<string>('');
     const [lastName,  setLastName]  = useState<string>('');
     const [email,     setEmail]     = useState<string>('');
     const [password,  setPassword]  = useState<string>('');
-    const [error,     setError]     = useState<string>('');
+    const [error,     setError]     = useState<any>({});
+    const [successMsg, setSuccessMsg] = useState<string>('');
 
     const clearAllFields = () => {
-        setError('');
+        setError({});
         setEmail('');
         setFirstName('');
         setLastName('');
@@ -18,61 +23,66 @@ function SignUpPage() {
     }
 
     const validate = () =>{
-      setError('');
-        if(!firstName.trim()){
-            setError('Укажите, пожалуйста, имя');
-            return false;
-        }
-        if (!lastName.trim()){
-            setError('Укажите, пожалуйста, фамилию');
-            return false;
-        }
-        if(!email.trim()){
-            setError('Пожалуйста, ведите email');
-            return false;
-        }
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailPattern.test(email)){
-            setError('Некорректный формат email');
-            return false;
+      const newError: any = {};
+        if(!firstName.trim())
+            newError.firstName ='Укажите, пожалуйста, имя';
+        if (!lastName.trim())
+            newError.lastName ='Укажите, пожалуйста, фамилию';
+        if(!email.trim())
+            newError.email ='Пожалуйста, ведите email';
+        else {
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email)){
+                newError.email = 'Некорректный формат email';
+            }
         }
         if(!password){
-            setError('Введите, пожалуйста, пароль');
-            return false;
+            newError.password = 'Введите, пожалуйста, пароль';
+        } else if (password.length<8){
+            newError.password = 'Пароль должен содержать минимум 8 символов';
         }
-        if (password.length<8){
-            setError('Пароль должен содержать минимум 8 символов');
-            return false;
-        }
-        setError('');
-        return true;
+        setError(newError);
+        return Object.keys(newError).length === 0;
     };
-    const handleSignUp = (e : React.FormEvent<HTMLFormElement>) => {
+    const handleSignUp = async (e : React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!validate()) return;
-        // axios.post(); добавление юзера
-        axios.post('http://localhost:8080/api/auth/register', {email, password, firstName, lastName})
-            .then(res => {
-                alert(res.data.message);
-                // потом поменяю на собственный компонент для сообщений
-                clearAllFields();
-            })
-        .catch(err => {
-            setError(err.response?.data?.message || err.response?.data?.errors );
-        })
+        setSuccessMsg('');
+        setError({});
+        try{
+            const response = await api.post('/auth/register', {email, password, firstName, lastName});
+            clearAllFields();
+            setSuccessMsg(response.data.message + 'Регистрация прошла успешно');
+            setTimeout(() =>{
+                onSignUpSuccess();
+            }, 1500);
+        } catch(err: any){
+            const errorData = err.response?.data;
+            if(errorData?.validationErrors)
+                setError(errorData?.validationErrors);
+            else if (errorData?.message)
+                setError({form: errorData .message});
+            else
+                setError({form: 'Ошибка. Попробуйте снова'});
+        }
     }
     return (
         <form onSubmit={handleSignUp}>
             <h3>Создать профиль</h3>
+            {error.form && (<div className='error-msg'>{error.form}</div>)}
+            {successMsg && (<div className='success-msg'>{successMsg}</div>)}
             <label htmlFor="firstName" className='formLabel'>Имя</label>
             <input type="text" id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            {error.firstName && (<div className='error-msg'>{error.firstName}</div>)}
             <label htmlFor="lastName" className='formLabel'>Фамилия</label>
             <input type="text" id='lastName' value={lastName} onChange={(e) => setLastName(e.target.value)} />
+            {error.lastName && (<div className='error-msg'>{error.lastName}</div>)}
             <label htmlFor="email" className='formLabel'>Почта</label>
             <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)}/>
+            {error.email && (<div className='error-msg'>{error.email}</div>)}
             <label htmlFor="password" className='formLabel'>Пароль</label>
             <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)}/>
-            {error && (<div className='error-msg'>{error}</div>)}
+            {error.password && (<div className='error-msg'>{error.password}</div>)}
             <button type='submit' className='submit-btn'>Создать</button>
         </form>
     )

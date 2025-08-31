@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import '../../styles/Authentication.css';
 
 type ResetPasswordPageProps = {
@@ -28,7 +28,7 @@ function ResetPasswordPage ({onBackToLogIn}: ResetPasswordPageProps) {
     const handleResetPassword = (e : React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!validate()) return;
-        axios.post('http://localhost:8080/api/auth/forgot-password', email)
+        api.post('/auth/forgot-password', email)
             .then(res => {
                 alert(res.data.message);
                 // потом поменяю на собственный компонент для сообщений

@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import "../../styles/ItemCartMain.css";
 import {useAuth} from "../../context/AuthContext";
-import axios from "axios";
+import api from "../../api/axios";
 
 interface Product {
     productId: number;
@@ -25,7 +25,7 @@ function ItemCartMain({item, onLogInRequired}: ItemCartMainProps) {
 
     const handleAddToCart = () => {
         if (isLoggedIn) {
-            axios.post('http://localhost:8080/api/cart/items', {productId: item.productId,quantity: 1})
+            api.post('/cart/items', {productId: item.productId,quantity: 1})
             .then(res => {
                 alert(`Товар "${item.name}" добавлен в корзину.`);
             })

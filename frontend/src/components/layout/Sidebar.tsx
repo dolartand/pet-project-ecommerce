@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import '../../styles/Sidebar.css';
-import axios from "axios";
+import api from "../../api/axios";
 
 interface Category {
     id: number;
@@ -21,7 +21,7 @@ function Sidebar({ isOpen, onClose, isClosing, handleCategorySelected }: Sidebar
 
     useEffect(() => {
         setLoading(true);
-        axios.get('http://localhost:8080/api/categories')
+        api.get('/categories')
         .then(res => {
             setCategories(res.data);
             setError(null);

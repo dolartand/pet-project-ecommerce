@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import ItemCartMain from "../components/layout/ItemCartMain";
-import axios from "axios";
+import api from "../api/axios";
 import "../styles/ItemCartMain.css";
 
 interface Product {
@@ -25,9 +25,9 @@ function MainPage ({categoryId, handleOpenLoginModal}: MainPageProps) {
     const [products, setProducts] = useState<Product[]>([]);
     useEffect(() => {
         setLoading(true);
-        let url = "http://localhost:8080/api/products";
-        if (categoryId) url += `?categoryId=${categoryId}`;
-        axios.get(url)
+        let url = '/products';
+        const params = categoryId ? { params: { categoryId } } : {};
+        api.get(url, params)
             .then(res =>{
                 if (res.data && Array.isArray(res.data.content)) {
                     setProducts(res.data.content);

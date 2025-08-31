@@ -33,7 +33,7 @@ function AuthMode({ mode, onClose, onSwitchMode, onResetMode, onBackToLogIn }: A
                     <LogInPage onShowResetPage={onResetMode}  onLogInSuccess={handleClose}/>
                 )}
                 {mode === 'signup' && (
-                    <SignUpPage/>
+                    <SignUpPage onSignUpSuccess={onSwitchMode}/>
                 )}
                 <p className='switch-link' onClick={onSwitchMode}>
                     {mode === 'login' && ('Нет аккаунта? Создать')}

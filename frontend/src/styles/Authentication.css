@@ -3,6 +3,11 @@
     color: #c00;
     font-size: 0.9em;
 }
+.success-msg {
+    margin-bottom: 0.5em;
+    color: green;
+    font-size: 0.9em;
+}
 .modal-backdrop {
     display: flex;
     align-items: center;

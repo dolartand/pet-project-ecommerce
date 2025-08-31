@@ -1,24 +1,27 @@
 import React, {useState,useEffect} from 'react';
+import {Route, Routes, useNavigate} from "react-router-dom";
 import Header from "./components/layout/Header";
 import AuthMode from "./components/layout/AuthMode";
+import ProtectedRoute from "./components/ProtectedRoute";
 import ShoppingBagPage from "./pages/ShoppingBagPage";
 import MainPage from "./pages/MainPage";
 import Sidebar from "./components/layout/Sidebar";
 import {AuthProvider} from "./context/AuthContext";
 import styles from 'styles/global.module.css';
 
-type AuthMode = 'login' | 'signup' | 'reset' | null;
+type AuthModeType = 'login' | 'signup' | 'reset' | null;
 
 function App() {
-    const [authMode, setAuthMode] = useState<AuthMode>(null);
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
-    const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
+    const [authMode, setAuthMode] = useState<AuthModeType>(null);
+    // const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+    // const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
     const [isClosing, setIsClosing] = useState<boolean>(false);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+    const navigate = useNavigate();
 
     const handleOpenLogInModal = () => {
-        setIsAuthModalOpen(true);
+        // setIsAuthModalOpen(true);
         setAuthMode('login');
     }
 
@@ -54,7 +57,7 @@ function App() {
     return (
         <AuthProvider>
             <div className="App">
-                <Header onLoginClick={()=>setAuthMode('login')} onCartClick={()=>setIsCartOpen(true)}
+                <Header onLoginClick={()=>setAuthMode('login')} onCartClick={()=>navigate('/cart')}
                         onMenuClick={handleSidebarToggle} />
                 <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose}
                          isClosing={isClosing} handleCategorySelected={handleCategorySelect} />
@@ -68,7 +71,12 @@ function App() {
                               onBackToLogIn={()=>setAuthMode('login')}/>
                 )}
                 <main>
-                    {isCartOpen ? <ShoppingBagPage /> : <MainPage categoryId={selectedCategory} handleOpenLoginModal={handleOpenLogInModal}/>}
+                    <Routes>
+                        <Route path="/" element={<MainPage categoryId={selectedCategory} handleOpenLoginModal={handleOpenLogInModal} />} />
+                        <Route element={<ProtectedRoute />}>
+                            <Route path="/cart" element={<ShoppingBagPage />}></Route>
+                        </Route>
+                    </Routes>
                 </main>
             </div>
         </AuthProvider>
