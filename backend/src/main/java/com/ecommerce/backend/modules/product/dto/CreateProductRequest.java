@@ -3,10 +3,14 @@ package com.ecommerce.backend.modules.product.dto;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-public class CreateProductRequest {
+public class CreateProductRequest implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @NotBlank
     @Size(max=255)
     private String name;

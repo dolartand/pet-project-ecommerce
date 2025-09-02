@@ -9,13 +9,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Sort;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProductSearchRequest {
+public class ProductSearchRequest implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @Size(max = 100)
     private String search;
     private Long categoryId;

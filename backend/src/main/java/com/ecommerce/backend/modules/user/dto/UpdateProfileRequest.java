@@ -6,10 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateProfileRequest {
+public class UpdateProfileRequest implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @NotBlank(message = "Имя обязательно для заполнения")
     @Size(min = 1, max = 50, message = "Имя должно содержать от 1 до 50 символов")

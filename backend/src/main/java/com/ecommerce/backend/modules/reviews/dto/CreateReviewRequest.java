@@ -8,10 +8,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateReviewRequest {
+public class CreateReviewRequest implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @NotNull(message = "Rating cannot be null")
     @Min(value = 1, message = "Rating must be at least 1")

@@ -6,13 +6,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class InventoryPage {
+public class InventoryPage implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private List<InventoryDto> content;
     private PageInfo page;
 }
