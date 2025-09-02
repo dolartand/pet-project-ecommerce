@@ -16,6 +16,7 @@ import com.ecommerce.backend.shared.exception.BusinessException;
 import com.ecommerce.backend.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -41,12 +42,16 @@ public class CartService {
     }
 
     public CartResponseDto addItemToCart(Long userId, CartItemDto cartItemDto) {
+        if (cartItemDto.getProductId() == null) {
+            throw new BusinessException("Product ID must not be null", "PRODUCT_ID_NULL");
+        }
+
         Cart cart = getOrCreateCart(userId);
         Product product = getProduct(cartItemDto.getProductId());
 
         validateProductAvailability(product);
 
-        Optional<CartItem> existingItem = cartItemsRepository.findByCartIdAndProductId(cartItemDto.getCartId(), product.getId());
+        Optional<CartItem> existingItem = cartItemsRepository.findByCartIdAndProductId(cart.getId(), product.getId());
 
         if (existingItem.isPresent()) {
             CartItem cartItem = existingItem.get();
@@ -129,7 +134,8 @@ public class CartService {
                 .orElseGet(() -> createEmptyCart(userId));
     }
 
-    private Cart createEmptyCart(Long userId) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    protected Cart createEmptyCart(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User is not found"));
 
