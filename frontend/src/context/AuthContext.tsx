@@ -1,6 +1,7 @@
 // файл для  глобального состояния аутентификации - хранилище
 import React, {useContext, createContext, ReactNode, useState, useEffect} from 'react';
 import api from "../api/axios";
+import {setToken, subscribe} from "../api/tokenStore";
 
 interface User {
     id: number;
@@ -22,6 +23,7 @@ interface AuthContextType  {
     accessToken: string | null,
     logIn: (authData: AuthData) => void,
     logOut: () => void,
+    setAccessToken: (token: string | null) => void,
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -30,6 +32,7 @@ const AuthContext = createContext<AuthContextType>({
     accessToken: null,
     logIn: () => {},
     logOut: () => {},
+    setAccessToken: () => {},
 });
 // отдает значения всем дочерним компонентам
 type AuthProviderProps = {
@@ -42,12 +45,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const [accessToken, setAccessToken] = useState<string | null>(null);
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        const storedAccessToken = localStorage.getItem('accessToken');
-        if(storedAccessToken && storedUser) {
-            setUser(JSON.parse(storedUser));
-            setAccessToken(storedAccessToken);
-            setIsLoggedIn(true);
+        const unsubscribe = subscribe((token) => setAccessToken(token));
+        return () => {
+            unsubscribe();
         }
     }, []);
 
@@ -55,17 +55,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setIsLoggedIn(true);
         setUser(authData.user);
         setAccessToken(authData.accessToken);
-        localStorage.setItem('accessToken', authData.accessToken);
-        // localStorage.setItem('refreshToken', authData.refreshToken);
-        localStorage.setItem('user', JSON.stringify(authData.user));
+        setToken(authData.accessToken);
     }
 
     const logOut = () => {
         setIsLoggedIn(false);
         setUser(null);
         setAccessToken(null);
+        setToken(null);
         localStorage.removeItem('accessToken');
-        // localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         api.post('/auth/logout')
             .then(res =>
@@ -73,7 +71,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             .catch(err => alert(err.message));
     }
 
-    const value = {isLoggedIn, user, accessToken, logIn, logOut};
+    const value = {isLoggedIn, user, accessToken, logIn, logOut, setAccessToken};
     return (
         <AuthContext.Provider value={value}>
             {children}
