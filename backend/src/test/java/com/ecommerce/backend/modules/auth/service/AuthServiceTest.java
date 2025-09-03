@@ -123,12 +123,12 @@ public class AuthServiceTest {
         when(jwtUtils.generateAccessToken(any(), anyLong())).thenReturn("accessToken");
         when(jwtUtils.generateRefreshToken(any(), anyLong())).thenReturn("refreshToken");
 
-        LoginResponse result = authService.login(loginRequest);
+        AuthResponseWrapper<LoginResponse> result = authService.login(loginRequest);
 
         assertThat(result).isNotNull();
-        assertThat(result.getAccessToken()).isEqualTo("accessToken");
+        assertThat(result.getResponse().getAccessToken()).isEqualTo("accessToken");
         assertThat(result.getRefreshToken()).isEqualTo("refreshToken");
-        assertThat(result.getUser().getEmail()).isEqualTo(user.getEmail());
+        assertThat(result.getResponse().getUser().getEmail()).isEqualTo(user.getEmail());
     }
 
     @Test
@@ -143,35 +143,33 @@ public class AuthServiceTest {
 
     @Test
     void refreshToken_shouldReturnNewTokens() {
-        RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest();
-        refreshTokenRequest.setRefreshToken("refreshToken");
+        String refreshToken = "refreshToken";
         UserDetails userDetails = CustomUserDetails.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .password(user.getPasswordHash())
                 .build();
 
-        when(jwtUtils.isTokenValid("refreshToken")).thenReturn(true);
-        when(jwtUtils.getUsernameFromToken("refreshToken")).thenReturn("email");
-        when(jwtUtils.getUserIdFromToken("refreshToken")).thenReturn(1L);
+        when(jwtUtils.isTokenValid(refreshToken)).thenReturn(true);
+        when(jwtUtils.getUsernameFromToken(refreshToken)).thenReturn("email");
+        when(jwtUtils.getUserIdFromToken(refreshToken)).thenReturn(1L);
         when(customUserDetailsService.loadUserByUsername("email")).thenReturn(userDetails);
         when(jwtUtils.rotateRefreshToken(anyString(), any(), anyLong())).thenReturn("newRefreshToken");
         when(jwtUtils.generateAccessToken(any(), anyLong())).thenReturn("newAccessToken");
 
-        RefreshTokenResponse result = authService.refreshToken(refreshTokenRequest);
+        AuthResponseWrapper<RefreshTokenResponse> result = authService.refreshToken(refreshToken);
 
         assertThat(result).isNotNull();
-        assertThat(result.getAccessToken()).isEqualTo("newAccessToken");
+        assertThat(result.getResponse().getAccessToken()).isEqualTo("newAccessToken");
         assertThat(result.getRefreshToken()).isEqualTo("newRefreshToken");
     }
 
     @Test
     void logout_shouldRevokeToken() {
-        LogoutRequest logoutRequest = new LogoutRequest();
-        logoutRequest.setRefreshToken("refreshToken");
+        String refreshToken = "refreshToken";
 
-        authService.logout(logoutRequest, user.getId());
+        authService.logout(refreshToken, user.getId());
 
-        verify(refreshTokenService, times(1)).revokeToken("refreshToken");
+        verify(refreshTokenService, times(1)).revokeToken(refreshToken);
     }
 }

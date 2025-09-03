@@ -68,7 +68,7 @@ public class AuthService {
         log.info("User registered successfully: {}", savedUser.getEmail());
     }
 
-    public LoginResponse login(LoginRequest request) {
+    public AuthResponseWrapper<LoginResponse> login(LoginRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
@@ -91,10 +91,14 @@ public class AuthService {
 
             log.info("User logged in successfully: {}", userDetails.getEmail());
 
-            return LoginResponse.builder()
+            LoginResponse response = LoginResponse.builder()
                     .accessToken(accessToken)
-                    .refreshToken(refreshToken)
                     .user(userDto)
+                    .build();
+
+            return AuthResponseWrapper.<LoginResponse>builder()
+                    .refreshToken(refreshToken)
+                    .response(response)
                     .build();
 
         } catch (BadCredentialsException e) {
@@ -102,9 +106,7 @@ public class AuthService {
         }
     }
 
-    public RefreshTokenResponse refreshToken(RefreshTokenRequest request) {
-        String refreshToken = request.getRefreshToken();
-
+    public AuthResponseWrapper<RefreshTokenResponse> refreshToken(String refreshToken) {
         if (!jwtUtils.isTokenValid(refreshToken)) {
             throw new InvalidTokenException("Invalid or expired refresh token");
         }
@@ -119,15 +121,17 @@ public class AuthService {
 
         log.info("Tokens refreshed successfully for user: {}", username);
 
-        return RefreshTokenResponse.builder()
+        RefreshTokenResponse refreshTokenResponse = RefreshTokenResponse.builder()
                 .accessToken(newAccessToken)
+                .build();
+
+        return AuthResponseWrapper.<RefreshTokenResponse>builder()
                 .refreshToken(newRefreshToken)
+                .response(refreshTokenResponse)
                 .build();
     }
 
-    public void logout(LogoutRequest request, Long userId) {
-        String refreshToken = request.getRefreshToken();
-
+    public void logout(String refreshToken, Long userId) {
         refreshTokenService.revokeToken(refreshToken);
 
         log.info("User logged out successfully: userId={}", userId);
