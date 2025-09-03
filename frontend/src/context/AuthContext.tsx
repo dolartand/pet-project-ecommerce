@@ -1,5 +1,6 @@
 // файл для  глобального состояния аутентификации - хранилище
 import React, {useContext, createContext, ReactNode, useState, useEffect} from 'react';
+import api from "../api/axios";
 
 interface User {
     id: number;
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(authData.user);
         setAccessToken(authData.accessToken);
         localStorage.setItem('accessToken', authData.accessToken);
-        localStorage.setItem('refreshToken', authData.refreshToken);
+        // localStorage.setItem('refreshToken', authData.refreshToken);
         localStorage.setItem('user', JSON.stringify(authData.user));
     }
 
@@ -64,8 +65,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(null);
         setAccessToken(null);
         localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        // localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
+        api.post('/auth/logout')
+            .then(res =>
+                alert(res.data.message))
+            .catch(err => alert(err.message));
     }
 
     const value = {isLoggedIn, user, accessToken, logIn, logOut};

@@ -4,7 +4,7 @@ import {useAuth} from "../../context/AuthContext";
 import api from "../../api/axios";
 
 interface Product {
-    productId: number;
+    id: number;
     name: string;
     description: string;
     price: number;
@@ -25,7 +25,7 @@ function ItemCartMain({item, onLogInRequired}: ItemCartMainProps) {
 
     const handleAddToCart = () => {
         if (isLoggedIn) {
-            api.post('/cart/items', {productId: item.productId,quantity: 1})
+            api.post('/cart/items', {productId: item.id,quantity: 1})
             .then(res => {
                 alert(`Товар "${item.name}" добавлен в корзину.`);
             })

@@ -2,19 +2,17 @@ import React, {useState,useEffect} from 'react';
 import {Route, Routes, useNavigate} from "react-router-dom";
 import Header from "./components/layout/Header";
 import AuthMode from "./components/layout/AuthMode";
-import ProtectedRoute from "./components/ProtectedRoute";
 import ShoppingBagPage from "./pages/ShoppingBagPage";
 import MainPage from "./pages/MainPage";
 import Sidebar from "./components/layout/Sidebar";
-import {AuthProvider} from "./context/AuthContext";
+import {AuthProvider, useAuth} from "./context/AuthContext";
 import styles from 'styles/global.module.css';
 
 type AuthModeType = 'login' | 'signup' | 'reset' | null;
 
 function App() {
     const [authMode, setAuthMode] = useState<AuthModeType>(null);
-    // const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
-    // const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
+    const {isLoggedIn} = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
     const [isClosing, setIsClosing] = useState<boolean>(false);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -54,10 +52,15 @@ function App() {
         setSelectedCategory(categoryId);
     }
 
+    const handleCartClick = () => {
+        if (isLoggedIn) navigate('/cart');
+        else handleOpenLogInModal();
+    }
+
     return (
         <AuthProvider>
             <div className="App">
-                <Header onLoginClick={()=>setAuthMode('login')} onCartClick={()=>navigate('/cart')}
+                <Header onLoginClick={()=>setAuthMode('login')} onCartClick={handleCartClick}
                         onMenuClick={handleSidebarToggle} />
                 <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose}
                          isClosing={isClosing} handleCategorySelected={handleCategorySelect} />
@@ -73,9 +76,7 @@ function App() {
                 <main>
                     <Routes>
                         <Route path="/" element={<MainPage categoryId={selectedCategory} handleOpenLoginModal={handleOpenLogInModal} />} />
-                        <Route element={<ProtectedRoute />}>
-                            <Route path="/cart" element={<ShoppingBagPage />}></Route>
-                        </Route>
+                        <Route path="/cart" element={<ShoppingBagPage />} />
                     </Routes>
                 </main>
             </div>

@@ -4,7 +4,7 @@ import api from "../api/axios";
 import "../styles/ItemCartMain.css";
 
 interface Product {
-    productId: number;
+    id: number;
     name: string;
     description: string;
     price: number;
@@ -49,7 +49,7 @@ function MainPage ({categoryId, handleOpenLoginModal}: MainPageProps) {
         <div className='main-page'>
             {products.filter(product => product.available)
                 .map((product: Product) => (
-                <ItemCartMain item={product} key={product.productId} onLogInRequired={handleOpenLoginModal} />
+                <ItemCartMain item={product} key={product.id} onLogInRequired={handleOpenLoginModal} />
             ))}
         </div>
     )

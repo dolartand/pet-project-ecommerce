@@ -1,4 +1,6 @@
 import React, {useState, useEffect} from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import ItemCartBuy from "../components/layout/ItemCartBuy";
 import '../styles/ShoppingBag.css';
 import api from "../api/axios";
@@ -18,6 +20,7 @@ function ShoppingBagPage() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedItems, setSelectedItems] = useState<number[]>([]); // по умолчанию весь массив выбран
+    const {isLoggedIn} = useAuth();
 
     useEffect(() => { // чтобы при изменении корзины, все выделялось по дефолту
         const allItemsId = goods.map((item) => item.id);
@@ -54,6 +57,7 @@ function ShoppingBagPage() {
     }
     const areAllSelected = goods.length > 0 && selectedItems.length === goods.length;
 
+    if (!isLoggedIn)    return <Navigate to="/" replace />
     if (loading)    return <div>Загрузка...</div>
     if (error)    return <div className='error-msg'>{error}</div>;
     if (goods.length === 0) return <div>Ваша корзина пуста</div>;
