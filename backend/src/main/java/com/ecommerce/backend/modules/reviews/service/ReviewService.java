@@ -13,6 +13,7 @@ import com.ecommerce.backend.modules.user.repository.UserRepository;
 import com.ecommerce.backend.shared.exception.BusinessException;
 import com.ecommerce.backend.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
@@ -36,13 +38,21 @@ public class ReviewService {
     @Transactional
     @CacheEvict(value = CacheConfig.CACHE_REVIEWS, allEntries = true)
     public ReviewResponse createReview(Long productId, CreateReviewRequest request, CustomUserDetails currentUser) {
+        log.info("Creating review for product {} by user {}", productId, currentUser.getUsername());
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> ResourceNotFoundException.product(productId));
+                .orElseThrow(() -> {
+                    log.error("Product not found with id: {} during review creation", productId);
+                    return ResourceNotFoundException.product(productId);
+                });
 
         User user = userRepository.findById(currentUser.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> {
+                    log.error("User not found with id: {} during review creation", currentUser.getId());
+                    return new ResourceNotFoundException("User not found");
+                });
 
         reviewRepository.findByProductIdAndUserId(productId, user.getId()).ifPresent(review -> {
+            log.warn("User {} has already reviewed product {}", currentUser.getUsername(), productId);
             throw new BusinessException("You have already reviewed this product", "REVIEW_ALREADY_EXISTS");
         });
 
@@ -54,12 +64,14 @@ public class ReviewService {
                 .build();
 
         Review savedReview = reviewRepository.save(review);
+        log.info("Successfully created review with id: {}", savedReview.getId());
         updateProductRating(product);
 
         return ReviewResponse.fromEntity(savedReview);
     }
 
     private void updateProductRating(Product product) {
+        log.info("Updating rating for product {}", product.getId());
         double averageRating = reviewRepository.findAverageRatingByProductId(product.getId())
                 .orElse(0.0);
 
@@ -67,17 +79,21 @@ public class ReviewService {
 
         product.setRating(roundedRating);
         productRepository.save(product);
+        log.info("Successfully updated rating for product {} to {}", product.getId(), roundedRating);
     }
 
     @Transactional
     @Cacheable(value = CacheConfig.CACHE_REVIEWS, key = "#productId + '_' + #pageable.getPageNumber() + '_' + #pageable.getPageSize()")
     public Page<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable) {
+        log.info("Fetching reviews for product {}. Pageable: {}", productId, pageable);
         if (!productRepository.existsById(productId)) {
+            log.error("Product not found with id: {} when fetching reviews", productId);
             throw ResourceNotFoundException.product(productId);
         }
 
         Page<Review> reviews = reviewRepository.findByProductId(productId, pageable);
 
+        log.info("Successfully fetched {} reviews for product {}", reviews.getTotalElements(), productId);
         return reviews.map(ReviewResponse::fromEntity);
     }
 }

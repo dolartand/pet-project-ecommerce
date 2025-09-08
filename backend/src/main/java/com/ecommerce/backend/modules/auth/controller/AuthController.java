@@ -26,14 +26,17 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@Valid @RequestBody RegisterRequest request) {
+        log.info("Registering user with email: {}", request.getEmail());
         authService.register(request);
 
         Map<String, String> response = Map.of("message", "Пользователь успешно зарегистрирован.");
+        log.info("User registered successfully with emaul: {}", request.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        log.info("Logging user with email: {}", request.getEmail());
         AuthResponseWrapper<LoginResponse> wrapper = authService.login(request);
         ResponseCookie cookie = ResponseCookie.from("refreshToken", wrapper.getRefreshToken())
                 .httpOnly(true)
@@ -42,6 +45,7 @@ public class AuthController {
                 .maxAge(60 * 60 * 24 * 7)
                 .build();
 
+        log.info("User logged in successfully with email: {}", request.getEmail());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(wrapper.getResponse());
@@ -49,6 +53,7 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<RefreshTokenResponse> refreshToken(@CookieValue(name = "refreshToken") String refreshToken) {
+        log.info("Refreshing token");
         AuthResponseWrapper<RefreshTokenResponse> wrapper = authService.refreshToken(refreshToken);
         ResponseCookie cookie = ResponseCookie.from("refreshToken", wrapper.getRefreshToken())
                 .httpOnly(true)
@@ -66,15 +71,19 @@ public class AuthController {
     public ResponseEntity<Void> logout(@CookieValue(name = "refreshToken") String refreshToken,
                                        HttpServletRequest httpRequest) {
         Long userId = (Long) httpRequest.getAttribute("userId");
+        log.info("Logging out user with id: {}", userId);
         authService.logout(refreshToken, userId);
+        log.info("User logged out successfully with id: {}", userId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        log.info("Requesting password reset for email: {}", request.getEmail());
         authService.forgotPassword(request);
 
         Map<String, String> response = Map.of("message", "Инструкции по восстановлению пароля отправлены на ваш email");
+        log.info("Password reset instructions sent to email: {}", request.getEmail());
         return ResponseEntity.ok(response);
     }
 }

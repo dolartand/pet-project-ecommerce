@@ -37,10 +37,12 @@ public class JwtUtils {
     }
 
     public String generateAccessToken(UserDetails userDetails, Long userId) {
+        log.info("Generating access token for user with email: {}", userDetails.getUsername());
         return generateToken(userDetails, userId, jwtProps.getAccessTokenExpiration(), "access");
     }
 
     public String generateRefreshToken(UserDetails userDetails, Long userId) {
+        log.info("Generating refresh token for user with email: {}", userDetails.getUsername());
         String refreshToken = generateToken(userDetails, userId, jwtProps.getRefreshTokenExpiration(), "refresh");
 
         refreshTokenService.saveRefreshToken(refreshToken, userId);
@@ -92,10 +94,12 @@ public class JwtUtils {
         try {
             Claims claims = getClaimsFromToken(token);
             if (claims.getExpiration().before(new Date())) {
+                log.warn("Token has expired");
                 return false;
             }
 
             if (isTokenBlackListed(token)) {
+                log.warn("Token is blacklisted");
                 return false;
             }
 
@@ -149,10 +153,12 @@ public class JwtUtils {
     }
 
     public String rotateRefreshToken(String oldRefreshToken, UserDetails userDetails, Long userId) {
+        log.info("Rotating refresh token for user with email: {}", userDetails.getUsername());
         String newRefreshToken = generateToken(userDetails, userId, jwtProps.getRefreshTokenExpiration(), "refresh");
 
         refreshTokenService.rotateToken(oldRefreshToken, newRefreshToken);
 
+        log.info("Refresh token rotated successfully for user: {}", userDetails.getUsername());
         return newRefreshToken;
     }
 }

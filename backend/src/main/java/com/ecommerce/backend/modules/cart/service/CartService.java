@@ -15,6 +15,7 @@ import com.ecommerce.backend.modules.user.repository.UserRepository;
 import com.ecommerce.backend.shared.exception.BusinessException;
 import com.ecommerce.backend.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +26,8 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
+@Slf4j
 public class CartService {
 
     private final CartRepository cartRepository;
@@ -33,16 +35,21 @@ public class CartService {
     private final UserRepository userRepository;
     private final CartItemsRepository cartItemsRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public CartResponseDto getUserCart(Long userId) {
+        log.info("Fetching cart for user with id: {}", userId);
         Cart cart = cartRepository.findByUserIdWithItems(userId)
                 .orElseGet(() -> createEmptyCart(userId));
 
+        log.info("Successfully fetched cart for user with id: {}", userId);
         return mapToCartResponseDto(cart);
     }
 
+    @Transactional
     public CartResponseDto addItemToCart(Long userId, CartItemDto cartItemDto) {
+        log.info("Attempting to add item to cart for user with id: {}. Item: {}", userId, cartItemDto);
         if (cartItemDto.getProductId() == null) {
+            log.error("Cannot add item with null id for user with id: {}", userId);
             throw new BusinessException("Product ID must not be null", "PRODUCT_ID_NULL");
         }
 
@@ -55,8 +62,10 @@ public class CartService {
 
         if (existingItem.isPresent()) {
             CartItem cartItem = existingItem.get();
+            log.info("Updating quantity for existing item {} in cart for user {}", cartItem.getId(), userId);
             cartItem.setQuantity(cartItem.getQuantity() + cartItemDto.getQuantity());
         } else {
+            log.info("Adding new item to cart for user {}", userId);
             CartItem newItem = new CartItem();
             newItem.setCart(cart);
             newItem.setProduct(product);
@@ -65,26 +74,33 @@ public class CartService {
             cart.getItems().add(newItem);
         }
         cartRepository.save(cart);
+        log.info("Successfully added item to cart for user with id: {}", userId);
         return mapToCartResponseDto(cart);
     }
 
+    @Transactional
     public CartResponseDto updateCartItem(Long userId, Long itemId, UpdateCartItemDto dto) {
+        log.info("Updating item with id: {} in cart for user with id: {}", itemId, userId);
         CartItem cartItem = cartItemsRepository.findByIdAndCartUserId(itemId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("CartItem is not found"));
         cartItem.setQuantity(dto.getQuantity());
         cartItemsRepository.save(cartItem);
 
         Cart cart = cartRepository.findByUserIdWithItems(userId).orElseThrow();
+        log.info("Successfully updated item in cart for user with id: {}", userId);
         return mapToCartResponseDto(cart);
     }
 
+    @Transactional
     public CartResponseDto removeItemFromCart(Long userId, Long itemId) {
+        log.info("Removing item with id: {} from cart for user with id: {}", itemId, userId);
         CartItem cartItem = cartItemsRepository.findByIdAndCartUserId(itemId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Элемент корзины не найден"));
 
         cartItemsRepository.delete(cartItem);
 
         Cart cart = cartRepository.findByUserIdWithItems(userId).orElseThrow();
+        log.info("Successfully removed item from cart for user with id: {}", userId);
         return mapToCartResponseDto(cart);
     }
 
@@ -116,17 +132,14 @@ public class CartService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    @Transactional
     public void clearCart(Long userId) {
+        log.info("Clearing cart for user with id: {}", userId);
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart is not found"));
         cart.getItems().clear();
         cartRepository.save(cart);
-    }
-
-    private void createCartIfNotExists(Long userId) {
-        if (!cartRepository.existsByUserId(userId)) {
-            createEmptyCart(userId);
-        }
+        log.info("Successfully cleared cart for user with id: {}", userId);
     }
 
     private Cart getOrCreateCart(Long userId) {
@@ -134,23 +147,31 @@ public class CartService {
                 .orElseGet(() -> createEmptyCart(userId));
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected Cart createEmptyCart(Long userId) {
+        log.info("Creating an empty cart for user {}", userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User is not found"));
 
         Cart cart = new Cart();
         cart.setUser(user);
-        return cartRepository.save(cart);
+        Cart savedCart = cartRepository.save(cart);
+        log.info("Successfully created an empty cart for user {}", userId);
+        return savedCart;
     }
 
     private Product getProduct(Long productId) {
+        log.debug("Fetching product with id: {}", productId);
         return productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product is not found"));
+                .orElseThrow(() -> {
+                    log.error("Product not found with id {}", productId);
+                    return new ResourceNotFoundException("Product is not found");
+                });
     }
 
     private void validateProductAvailability(Product product) {
+        log.debug("Validating availability for product {}", product.getId());
         if (!product.getAvailable()) {
+            log.warn("Product {} is not available for order", product.getId());
             throw new BusinessException("Product is not available for order", "PRODUCT_NOT_AVAILABLE");
         }
     }

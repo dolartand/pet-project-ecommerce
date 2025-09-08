@@ -60,19 +60,27 @@ public class InventoryEventListener {
     }
 
     private void processOrderCreation(Order order) {
+        log.info("Processing order creation for order id: {}", order.getId());
         if (order.getStatus() == OrderStatus.PENDING) {
             Map<Long, Integer> productQuantities = order.getItems().stream()
                     .collect(Collectors.toMap(item -> item.getProductId(), item -> item.getQuantity()));
+            log.info("Reserving products for order id: {}. Products: {}", order.getId(), productQuantities);
             inventoryService.reserveProduct(order.getId(), productQuantities, order.getUser().getEmail());
+            log.info("Successfully reserved products for order id: {}", order.getId());
         }
     }
 
     private void processOrderStatusChange(Order order) {
+        log.info("Processing order status change for order id: {}. New status: {}", order.getId(), order.getStatus());
         String userEmail = order.getUser().getEmail();
         if (order.getStatus() == OrderStatus.CANCELLED) {
+            log.info("Cancelling reservation for order id: {}", order.getId());
             inventoryService.cancelReservation(order.getId(), userEmail);
+            log.info("Successfully cancelled reservation for order id: {}", order.getId());
         } else if (order.getStatus() == OrderStatus.SHIPPED) {
+            log.info("Confirming reservation for order id: {}", order.getId());
             inventoryService.confirmReservation(order.getId(), userEmail);
+            log.info("Successfully confirmed reservation for order id: {}", order.getId());
         }
     }
 

@@ -33,6 +33,7 @@ public class NotificationService {
     @RabbitListener(queues = RabbitConfig.USER_REGISTRATION_NOTIFICATIONS_QUEUE)
     @Retryable(retryFor = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
     public void handleUserRegistration(@Payload String eventJson) throws JsonProcessingException {
+        log.info("Received user registration event: {}", eventJson);
         UserRegisteredEvent event = deserializeEvent(eventJson, UserRegisteredEvent.class);
         if (isEventAlreadyProcessed(event.getEventId())) {
             log.warn("User registration event {} already processed. Skipping.", event.getEventId());
@@ -42,11 +43,13 @@ public class NotificationService {
         log.info("Sending registration confirmation for user: {}", event.getUserEmail());
         // TODO: Реализовать отправку подтверждения по почте
         System.out.println("SIMULATING: Sending registration email to " + event.getUserEmail());
+        log.info("Successfully sent registration confirmation for user: {}", event.getUserEmail());
     }
 
     @RabbitListener(queues = RabbitConfig.ORDER_NOTIFICATIONS_QUEUE)
     @Retryable(retryFor = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
     public void handleOrderEvent(@Payload String eventJson) throws JsonProcessingException {
+        log.info("Received order event: {}", eventJson);
         BaseEvent baseEvent = objectMapper.readValue(eventJson, BaseEvent.class);
         if (isEventAlreadyProcessed(baseEvent.getEventId())) {
             log.warn("Order event {} already processed. Skipping.", baseEvent.getEventId());
@@ -58,17 +61,20 @@ public class NotificationService {
             log.info("Sending order creation notification for order ID: {}", event.getAggregateId());
             // TODO: Реализовать отправку подтверждения по почте
             System.out.println("SIMULATING: Sending order created email for order " + event.getAggregateId());
+            log.info("Successfully sent order creation notification for order ID: {}", event.getAggregateId());
         } else if (baseEvent.getEventType().equals(OrderStatusChangedEvent.class.getSimpleName())) {
             OrderStatusChangedEvent event = objectMapper.readValue(eventJson, OrderStatusChangedEvent.class);
             log.info("Sending order status change notification for order ID: {}. New status: {}", event.getAggregateId(), event.getOrder().getStatus());
             // TODO: Реализовать отправку подтверждения по почте
             System.out.println("SIMULATING: Sending order status update email for order " + event.getAggregateId());
+            log.info("Successfully sent order status change notification for order ID: {}", event.getAggregateId());
         }
     }
 
     @RabbitListener(queues = RabbitConfig.CART_ABANDONED_NOTIFICATIONS_QUEUE)
     @Retryable(retryFor = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
     public void handleAbandonedCartEvent(@Payload String eventJson) throws JsonProcessingException {
+        log.info("Received abandoned cart event: {}", eventJson);
         CartAbandonedEvent event = deserializeEvent(eventJson, CartAbandonedEvent.class);
         if (isEventAlreadyProcessed(event.getEventId())) {
             log.warn("Cart abandoned event {} already processed. Skipping.", event.getEventId());
@@ -78,6 +84,7 @@ public class NotificationService {
         log.info("Sending abandoned cart reminder for cart ID: {}", event.getAggregateId());
         // TODO: Реализовать отправку подтверждения по почте
         System.out.println("SIMULATING: Sending abandoned cart reminder for cart " + event.getAggregateId());
+        log.info("Successfully sent abandoned cart reminder for cart ID: {}", event.getAggregateId());
     }
 
     @Recover

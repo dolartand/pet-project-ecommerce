@@ -37,7 +37,7 @@ public class ProductService {
     @Cacheable(value = CacheConfig.CACHE_PRODUCTS, key = "#request.toString() + #pageable.toString()",
             condition = "#request.search == null && #request.categoryId == null && #pageable.getPageNumber() < 3")
     public Page<ProductResponse> searchProducts(ProductSearchRequest request, Pageable pageable) {
-        log.debug("Searching products with filters: {}", request);
+        log.info("Searching products with request: {} and pageable: {}", request, pageable);
 
         Pageable pageableWithSort =  PageRequest.of(
                 pageable.getPageNumber(),
@@ -59,9 +59,13 @@ public class ProductService {
 
     @Cacheable(value = CacheConfig.CACHE_PRODUCT_DETAILS, key = "#id")
     public ProductResponse getProductById(Long id) {
-        log.debug("Getting product with id: {}", id);
+        log.info("Getting product with id: {}", id);
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> ResourceNotFoundException.product(id));
+                .orElseThrow(() -> {
+                    log.error("Product not found with id: {}", id);
+                    return ResourceNotFoundException.product(id);
+                });
+        log.info("Successfully fetched product with id: {}", id);
         return mapToResponse(product);
     }
 
@@ -134,11 +138,14 @@ public class ProductService {
     }
 
     private void validateCreateRequest(CreateProductRequest request) {
+        log.debug("Validating create product request for product: {}", request.getName());
         if (request.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            log.error("Validation failed for creating product {}: Price must be greater than zero.", request.getName());
             throw new ValidationException("Цена должна быть больше нуля");
         }
 
         if (!categoryRepository.existsById(request.getCategoryId())) {
+            log.error("Validation failed for creating product {}: Category with id {} not found.", request.getName(), request.getCategoryId());
             throw ResourceNotFoundException.category(request.getCategoryId());
         }
     }

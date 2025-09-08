@@ -30,23 +30,33 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Cacheable(CacheConfig.CACHE_CATEGORIES)
     public List<CategoryResponse> getAllRootCategories() {
-        return categoryRepository.findByParentIsNull().stream()
+        log.info("Fetching all root categories");
+        List<CategoryResponse> categories = categoryRepository.findByParentIsNull().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+        log.info("Successfully fetched {} root categories", categories.size());
+        return categories;
     }
 
     @Override
     @Cacheable(value = CacheConfig.CACHE_CATEGORIES, key = "#id")
     public CategoryResponse getCategoryById(Long id) {
-        return categoryRepository.findById(id)
+        log.info("Fetching category by id: {}", id);
+        CategoryResponse category = categoryRepository.findById(id)
                 .map(this::mapToResponse)
-                .orElseThrow(() -> ResourceNotFoundException.category(id));
+                .orElseThrow(() -> {
+                    log.error("Category not found with id: {}", id);
+                    return ResourceNotFoundException.category(id);
+                });
+        log.info("Successfully fetched category by id: {}", id);
+        return category;
     }
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     @CacheEvict(value = CacheConfig.CACHE_CATEGORIES, allEntries = true)
     public CategoryResponse createCategory(CategoryRequest request) {
+        log.info("Creating a new category with request: {}", request);
         Category  category = new Category();
         category.setName(request.getName());
         category.setDescription(request.getDescription());
@@ -66,8 +76,12 @@ public class CategoryServiceImpl implements CategoryService {
     @PreAuthorize("hasRole('ADMIN')")
     @CacheEvict(value = CacheConfig.CACHE_CATEGORIES, allEntries = true)
     public CategoryResponse updateCategory(Long id, CategoryRequest request) {
+        log.info("Updating category with id: {}. Update: {}", id, request);
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("No such category with id: " + id));
+                .orElseThrow(() -> {
+                    log.error("Category not found with id: {} during update", id);
+                    return new EntityNotFoundException("No such category with id: " + id);
+                });
         category.setName(request.getName());
         category.setDescription(request.getDescription());
         if (request.getParentId() != null) {
@@ -84,9 +98,13 @@ public class CategoryServiceImpl implements CategoryService {
     @PreAuthorize("hasRole('ADMIN')")
     @CacheEvict(value = CacheConfig.CACHE_CATEGORIES, allEntries = true)
     public void deleteCategory(Long id) {
-        if (!categoryRepository.existsById(id)) throw new EntityNotFoundException("No such category with id: " + id);
+        log.info("Deleting category with id: {}", id);
+        if (!categoryRepository.existsById(id)) {
+            log.error("Category not found with id: {} during delete", id);
+            throw new EntityNotFoundException("No such category with id: " + id);
+        }
         categoryRepository.deleteById(id);
-        log.info("Deleted category with id: {}", id);
+        log.info("Successfully deleted category with id: {}", id);
     }
 
     private CategoryResponse mapToResponse(Category category) {

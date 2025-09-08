@@ -32,6 +32,7 @@ public class AdminUserController {
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String orderBy
     ) {
+        log.info("Admin request to get all users. Page: {}, Size: {}, SortBy: {}, OrderBy: {}", page, size, sortBy, orderBy);
         Sort sort = Sort.by(Sort.Direction.fromString(orderBy), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
@@ -45,6 +46,7 @@ public class AdminUserController {
                 .pageSize(users.getTotalPages())
                 .build();
 
+        log.info("Admin successfully fetched all users. Total elements: {}", users.getTotalElements());
         return ResponseEntity.ok(userListResponse);
     }
 }

@@ -23,15 +23,17 @@ public class ProductController {
     public ResponseEntity<Page<ProductResponse>> getProducts(
             @Valid @ModelAttribute ProductSearchRequest request,
             @PageableDefault(size = 20) Pageable pageable) {
-
+        log.info("Request to search products with request: {} and pageable: {}", request, pageable);
         Page<ProductResponse> products = productService.searchProducts(request, pageable);
+        log.info("Successfully searched products. Found {} products.", products.getTotalElements());
         return ResponseEntity.ok(products);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getProduct(@PathVariable Long id) {
-        log.debug("GET /api/products/{}", id);
+        log.info("Request to get product by id: {}", id);
         ProductResponse product = productService.getProductById(id);
+        log.info("Successfully fetched product by id: {}. Result: {}", id, product);
         return ResponseEntity.ok(product);
     }
 }

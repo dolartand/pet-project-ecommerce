@@ -25,7 +25,9 @@ public class UserController {
     @GetMapping("/profile")
     public ResponseEntity<UserProfileResponse> getCurrentUserProfile(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
+        log.info("Fetching profile for user with id: {}", userId);
         UserProfileResponse profile = userService.getCurrentUserProfile(userId);
+        log.info("Successfully fetched profile for user with id: {}", userId);
         return ResponseEntity.ok(profile);
     }
 
@@ -34,7 +36,9 @@ public class UserController {
             @Valid @RequestBody UpdateProfileRequest updateRequest,
             HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
+        log.info("Updating profile for user with id: {}. Update: {}", userId, updateRequest);
         UserProfileResponse profile = userService.updateProfile(userId, updateRequest);
+        log.info("Successfully updated profile for user with id: {}", userId);
         return ResponseEntity.ok(profile);
     }
 }

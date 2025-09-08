@@ -24,6 +24,7 @@ import com.ecommerce.backend.shared.exception.BusinessException;
 import com.ecommerce.backend.shared.exception.ResourceNotFoundException;
 import com.ecommerce.backend.shared.outbox.EventPublisher;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderService {
 
     private final OrdersRepository ordersRepository;
@@ -53,13 +55,21 @@ public class OrderService {
     @Transactional
     @CacheEvict(value = CacheConfig.CACHE_ORDERS, allEntries = true)
     public OrderDto createOrder(String userEmail, CreateOrderRequest request) {
+        log.info("Creating order for user: {}. Request: {}", userEmail, request);
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
+                .orElseThrow(() -> {
+                    log.error("User not found with email: {} during order creation", userEmail);
+                    return new ResourceNotFoundException("User not found with email: " + userEmail);
+                });
 
         Cart cart = cartRepository.findByUserIdWithItems(user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with id: " + user.getId()));
+                .orElseThrow(() -> {
+                    log.error("Cart not found for user with id: {} during order creation", user.getId());
+                    return new ResourceNotFoundException("Cart not found with id: " + user.getId());
+                });
 
         if (cart.getItems().isEmpty()) {
+            log.error("Cannot create order for user {} with an empty cart", userEmail);
             throw new BusinessException("Cannot create order with empty cart", "CREATE_CART_ERROR");
         }
 
@@ -97,6 +107,7 @@ public class OrderService {
         });
 
         Order savedOrder = ordersRepository.save(order);
+        log.info("Successfully saved order with id: {}", savedOrder.getId());
 
         OrderCreatedEvent event = new OrderCreatedEvent(savedOrder);
         eventPublisher.publish(event, RabbitConfig.ORDER_EVENTS_EXCHANGE, "order.created");
@@ -109,10 +120,12 @@ public class OrderService {
     @Transactional(readOnly = true)
     @Cacheable(value = CacheConfig.CACHE_ORDERS, key = "#userEmail + '_' + #pageable.pageNumber", condition = "#pageable.pageNumber == 0")
     public OrdersPage getUserOrders(String userEmail, Pageable pageable) {
+        log.info("Fetching orders for user: {}. Pageable: {}", userEmail, pageable);
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
         Page<Order> ordersPage = ordersRepository.findByUser(user, pageable);
 
+        log.info("Successfully fetched {} orders for user: {}", ordersPage.getTotalElements(), userEmail);
         return OrdersPage.builder()
                 .content(ordersPage.getContent().stream()
                         .map(this::mapOrderToDto)
@@ -131,12 +144,17 @@ public class OrderService {
     @Transactional(readOnly = true)
     @Cacheable(value = CacheConfig.CACHE_ORDERS, key = "'user:' + #userEmail + '_order:' + #orderId")
     public OrderDto getOrderById(String userEmail, Long orderId) {
+        log.info("Fetching order with id: {} for user: {}", orderId, userEmail);
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
 
         Order order = ordersRepository.findByIdAndUser(orderId, user)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+                .orElseThrow(() -> {
+                    log.error("Order with id: {} not found for user: {}", orderId, userEmail);
+                    return new ResourceNotFoundException("Order not found with id: " + orderId);
+                });
 
+        log.info("Successfully fetched order with id: {} for user: {}", orderId, userEmail);
         return mapOrderToDto(order);
     }
 
@@ -146,6 +164,7 @@ public class OrderService {
             @CacheEvict(value = CacheConfig.CACHE_ORDERS, key = "'user:' + #result.userEmail + '_order' + #orderId")
     })
     public OrderDto closeOrder(String userEmail, Long orderId) {
+        log.info("Closing order with id: {} for user: {}", orderId, userEmail);
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
 
@@ -153,6 +172,7 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
         if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.COMFIRMED) {
+            log.error("Cannot close order with id: {}. Invalid status: {}", orderId, order.getStatus());
             throw new BusinessException("Order cannot be closed", "ORDER_CLOSING_ERROR");
         }
 
@@ -163,14 +183,17 @@ public class OrderService {
         OrderStatusChangedEvent event = new OrderStatusChangedEvent(savedOrder, oldStatus);
         eventPublisher.publish(event, RabbitConfig.ORDER_EVENTS_EXCHANGE, "order.status.changed");
 
+        log.info("Successfully closed order with id: {}", orderId);
         return mapOrderToDto(savedOrder);
     }
 
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN')")
     public OrdersPage getAllOrders(Pageable pageable) {
+        log.info("Admin fetching all orders. Pageable: {}", pageable);
         Page<Order> ordersPage = ordersRepository.findAll(pageable);
 
+        log.info("Admin successfully fetched {} orders", ordersPage.getTotalElements());
         return OrdersPage.builder()
                 .content(ordersPage.getContent().stream()
                         .map(this::mapOrderToDto)
@@ -188,8 +211,10 @@ public class OrderService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN')")
     public OrdersPage getOrderByStatus(OrderStatus orderStatus, Pageable pageable) {
+        log.info("Admin fetching orders with status: {}. Pageable: {}", orderStatus, pageable);
         Page<Order> ordersPage = ordersRepository.findByStatus(orderStatus, pageable);
 
+        log.info("Admin successfully fetched {} orders with status: {}", ordersPage.getTotalElements(), orderStatus);
         return OrdersPage.builder()
                 .content(ordersPage.getContent().stream()
                         .map(this::mapOrderToDto)
@@ -205,8 +230,13 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public OrderDto getOrderByIdAdmin(Long orderId) {
+        log.info("Admin fetching order by id: {}", orderId);
         Order order = ordersRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+                .orElseThrow(() -> {
+                    log.error("Admin failed to fetch order. Order not found with id: {}", orderId);
+                    return new ResourceNotFoundException("Order not found with id: " + orderId);
+                });
+        log.info("Admin successfully fetched order with id: {}", orderId);
         return mapOrderToDto(order);
     }
 
@@ -217,8 +247,12 @@ public class OrderService {
             @CacheEvict(value = CacheConfig.CACHE_ORDERS, key = "'user:' + #result.userEmail + '_order' + #orderId")
     })
     public OrderDto updateOrderStatus(Long orderId, OrderStatusUpdateRequest request, String adminEmail) {
+        log.info("Admin {} updating status for order with id: {}. Request: {}", adminEmail, orderId, request);
         Order order = ordersRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+                .orElseThrow(() -> {
+                    log.error("Order not found with id: {} during status update by admin {}", orderId, adminEmail);
+                    return new ResourceNotFoundException("Order not found with id: " + orderId);
+                });
 
         OrderStatus newStatus = request.getStatus();
         OrderStatus oldStatus = order.getStatus();
@@ -231,24 +265,30 @@ public class OrderService {
         OrderStatusChangedEvent event = new OrderStatusChangedEvent(savedOrder, oldStatus);
         eventPublisher.publish(event, RabbitConfig.ORDER_EVENTS_EXCHANGE, "order.status.changed");
 
+        log.info("Admin {} successfully updated status for order with id: {} to {}", adminEmail, orderId, newStatus);
         return mapOrderToDto(savedOrder);
     }
 
     private void validateStatusTransition(OrderStatus oldStatus, OrderStatus newStatus) {
+        log.debug("Validating status transition from {} to {}", oldStatus, newStatus);
         if (oldStatus == OrderStatus.CANCELLED) {
+            log.error("Invalid status transition: Cannot change status of a cancelled order.");
             throw new BusinessException("Cancelled order cannot be closed", "ORDER_CLOSING_ERROR");
         }
 
         if (oldStatus == OrderStatus.DELIVERED && newStatus == OrderStatus.DELIVERED) {
+            log.error("Invalid status transition: Delivered order cannot be changed.");
             throw new BusinessException("Delivered order cannot be closed", "ORDER_CLOSING_ERROR");
         }
 
         if (oldStatus == OrderStatus.PENDING &&
                 (newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.DELIVERED)) {
+            log.error("Invalid status transition: Order must be approved before shipping/delivering. From {} to {}", oldStatus, newStatus);
             throw new BusinessException("Order must be approved before shipping", "ORDER_CLOSING_ERROR");
         }
 
         if (oldStatus == OrderStatus.COMFIRMED && newStatus == OrderStatus.DELIVERED) {
+            log.error("Invalid status transition: Order must be shipped before delivering. From {} to {}", oldStatus, newStatus);
             throw new BusinessException("Order must be shipped before delivering", "ORDER_CLOSING_ERROR");
         }
     }

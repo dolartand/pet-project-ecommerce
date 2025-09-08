@@ -35,17 +35,25 @@ public class InventoryService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN')")
     public InventoryDto getProductInventory(Long productId) {
+        log.info("Fetching inventory for product with id: {}", productId);
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> ResourceNotFoundException.product(productId));
+                .orElseThrow(() -> {
+                    log.error("Product not found with id: {}", productId);
+                    return ResourceNotFoundException.product(productId);
+                });
         Inventory inventory = inventoryRepository.findById(productId)
-                .orElseThrow(() -> new BusinessException("No data for product with id: " + productId,
-                        "INVENTORY_NOT_FOUND"));
+                .orElseThrow(() -> {
+                    log.error("Inventory not found for product with id: {}", productId);
+                    return new BusinessException("No data for product with id: " + productId, "INVENTORY_NOT_FOUND");
+                });
+        log.info("Successfully fetched inventory for product with id: {}", productId);
         return mapToDto(inventory, product.getName());
     }
 
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN')")
     public InventoryPage getAllInventory(Pageable pageable) {
+        log.info("Fetching all inventory with pageable: {}", pageable);
         Page<Inventory> inventoryPage = inventoryRepository.findAll(pageable);
 
         List<Long> productIds = inventoryPage.getContent().stream()
@@ -81,8 +89,12 @@ public class InventoryService {
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public InventoryDto updateInventory(Long productId, InventoryUpdateRequest request, String username) {
+        log.info("Updating inventory for product with id: {}. Update: {}", productId, request);
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> ResourceNotFoundException.product(productId));
+                .orElseThrow(() -> {
+                    log.error("Product not found with id: {} during inventory update", productId);
+                    return ResourceNotFoundException.product(productId);
+                });
 
         Inventory inventory = inventoryRepository.findById(productId)
                 .orElseGet(() -> Inventory.builder()
@@ -110,12 +122,15 @@ public class InventoryService {
                 username
         );
 
+        log.info("Successfully updated inventory for product with id: {}", productId);
         return mapToDto(savedInventory, product.getName());
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     public InventoryHistoryPage getInventoryHistory(Long productId, Pageable pageable) {
+        log.info("Fetching inventory history for product with id: {}. Pageable: {}", productId, pageable);
         if (!productRepository.existsById(productId)) {
+            log.error("Product not found with id: {} when fetching inventory history", productId);
             throw ResourceNotFoundException.product(productId);
         }
 
@@ -144,6 +159,7 @@ public class InventoryService {
 
     @Transactional(readOnly = true)
     public boolean checkAvailability(List<CartItemAvailabilityCheck> items) {
+        log.info("Checking availability for items: {}", items);
         List<Long> productIds = items.stream()
                 .map(CartItemAvailabilityCheck::getProductId)
                 .collect(Collectors.toList());
@@ -156,32 +172,41 @@ public class InventoryService {
         for (CartItemAvailabilityCheck item : items) {
             Inventory inventory = mapInventories.get(item.getProductId());
             if (inventory == null || inventory.getAvailableQuantity() < item.getQuantity()) {
+                log.warn("Item not available: {}. Required: {}, Available: {}", item.getProductId(), item.getQuantity(), inventory != null ? inventory.getAvailableQuantity() : "N/A");
                 return false;
             }
         }
 
+        log.info("All items are available");
         return true;
     }
 
     @Transactional(readOnly = true)
     public boolean isProductAvailable(Long productId, Integer quantity) {
-        return inventoryRepository.findById(productId)
+        log.info("Checking availability for product {} with quantity {}", productId, quantity);
+        boolean isAvailable = inventoryRepository.findById(productId)
                 .map(inventory -> inventory.getAvailableQuantity() >= quantity)
                 .orElse(false);
+        log.info("Product {} availability: {}", productId, isAvailable);
+        return isAvailable;
     }
 
     @Transactional
     public void reserveProduct(Long orderId, Map<Long, Integer> productQuantities, String username) {
+        log.info("Reserving products for order id: {}. Products: {}", orderId, productQuantities);
         for (Map.Entry<Long, Integer> entry : productQuantities.entrySet()) {
             Long productId = entry.getKey();
             Integer quantity = entry.getValue();
 
+            log.debug("Reserving {} units of product {}", quantity, productId);
             Inventory inventory = inventoryRepository.findByProductId(productId)
-                    .orElseThrow(() -> new BusinessException(
-                            "No data for product  " + productId,
-                            "INVENTORY_NOT_FOUND"));
+                    .orElseThrow(() -> {
+                        log.error("Inventory not found for product {} during reservation", productId);
+                        return new BusinessException("No data for product  " + productId, "INVENTORY_NOT_FOUND");
+                    });
 
             if (inventory.getAvailableQuantity() < quantity) {
+                log.error("Insufficient stock for product {} during reservation. Required: {}, Available: {}", productId, quantity, inventory.getAvailableQuantity());
                 throw new BusinessException(
                         "Out of stock",
                         "INSUFFICIENT_STOCK"
@@ -212,6 +237,7 @@ public class InventoryService {
 
     @Transactional
     public void confirmReservation(Long orderId, String username) {
+        log.info("Confirming reservation for order id: {}", orderId);
         List<InventoryHistory> historyRecords = inventoryHistoryRepository.findByOrderId(orderId);
 
         Map<Long, Integer> productQuantities = new HashMap<>();
@@ -256,6 +282,7 @@ public class InventoryService {
 
     @Transactional
     public void cancelReservation(Long orderId, String username) {
+        log.info("Cancelling reservation for order id: {}", orderId);
         List<InventoryHistory> historyRecords = inventoryHistoryRepository.findByOrderId(orderId);
 
         Map<Long, Integer> productQuantities = new HashMap<>();
@@ -303,6 +330,7 @@ public class InventoryService {
 
     @Transactional
     public Inventory createInventoryForProduct(Product product, Integer initQuantity ,String username) {
+        log.info("Creating inventory for product with id: {}. Initial quantity: {}", product.getId(), initQuantity);
         if (inventoryRepository.existsByProductId(product.getId())) {
             log.warn("Inventory already exists for product {}", product.getId());
             return inventoryRepository.findById(product.getId()).orElse(null);
@@ -335,18 +363,23 @@ public class InventoryService {
 
     @Transactional
     public Inventory updateProductAvailability(Long productId, boolean available) {
+        log.info("Updating product availability for product with id: {}. Available: {}", productId, available);
         Inventory inventory = inventoryRepository.findById(productId)
-                .orElseThrow(() -> new BusinessException(
-                        "No data for product  " + productId,
-                        "INVENTORY_NOT_FOUND"
-                ));
+                .orElseThrow(() -> {
+                    log.error("Inventory not found for product {} when updating availability", productId);
+                    return new BusinessException("No data for product  " + productId, "INVENTORY_NOT_FOUND");
+                });
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> ResourceNotFoundException.product(productId));
+                .orElseThrow(() -> {
+                    log.error("Product not found with id: {} when updating availability", productId);
+                    return ResourceNotFoundException.product(productId);
+                });
 
         product.setAvailable(available);
         productRepository.save(product);
 
+        log.info("Successfully updated product availability for product with id: {}", productId);
         return inventory;
     }
 

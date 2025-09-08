@@ -39,8 +39,10 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     @Cacheable(value = CacheConfig.CACHE_USER_PROFILE, key = "#userId")
     public UserProfileResponse getCurrentUserProfile(Long userId) {
+        log.info("Fetching profile for user with id: {}", userId);
         User user = findUserById(userId);
 
+        log.info("Successfully fetched profile for user with id: {}", userId);
         return UserProfileResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -55,6 +57,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @CachePut(value = CacheConfig.CACHE_USER_PROFILE, key = "#userId")
     public UserProfileResponse updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {
+        log.info("Updating profile for user with id: {}. Update: {}", userId, updateProfileRequest);
         User user = findUserById(userId);
 
         user.setFirstName(updateProfileRequest.getFirstName());
@@ -82,17 +85,21 @@ public class UserServiceImpl implements UserService {
     @Override
     @CacheEvict(value = CacheConfig.CACHE_USER_PROFILE, key = "#userId")
     public void changePassword(Long userId, ChangePasswordRequest request) {
+        log.info("Changing password for user with id: {}", userId);
         if (!request.getNewPassword().equals(request.getNewPasswordConfirm())) {
+            log.error("Password change failed for user {}: Passwords do not match.", userId);
             throw new ValidationException("Пароли не совпадают");
         }
 
         User user = findUserById(userId);
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+            log.error("Password change failed for user {}: Invalid current password.", userId);
             throw new InvalidCredentialsException("Неверный текущий пароль");
         }
 
         if (passwordEncoder.matches(request.getNewPassword(), user.getPasswordHash())) {
+            log.error("Password change failed for user {}: New password is the same as the old one.", userId);
             throw new ValidationException("Новый пароль и текущий должны отличаться");
         }
 
@@ -107,8 +114,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     public Page<AdminUserDto> getAllUsers(Pageable pageable) {
+        log.info("Admin fetching all users. Pageable: {}", pageable);
         Page<User> users = userRepository.findAll(pageable);
 
+        log.info("Admin successfully fetched {} users", users.getTotalElements());
         return users.map(user -> AdminUserDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -128,10 +137,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public AdminUserDto getUserById(Long userId) {
+        log.info("Admin fetching user by id: {}", userId);
         User user = findUserById(userId);
 
         int totalUserOrders = orderService.getUserOrders(user.getEmail(), Pageable.unpaged()).getContent().size();
 
+        log.info("Admin successfully fetched user by id: {}", userId);
         return AdminUserDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -146,6 +157,9 @@ public class UserServiceImpl implements UserService {
 
     private User findUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с ID: " + userId + " не найден"));
+                .orElseThrow(() -> {
+                    log.error("User not found with id: {}", userId);
+                    return new UserNotFoundException("Пользователь с ID: " + userId + " не найден");
+                });
     }
 }

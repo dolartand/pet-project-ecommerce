@@ -46,7 +46,9 @@ public class AuthService {
     private final EventPublisher eventPublisher;
 
     public void register(RegisterRequest request) {
+        log.info("Attempting to register user with email: {}", request.getEmail());
         if (userRepository.existsByEmail(request.getEmail())) {
+            log.warn("Registration failed. Email already exists: {}", request.getEmail());
             throw new UserAlreadyExistsException("User with email: " + request.getEmail() + " already exists");
         }
 
@@ -69,12 +71,15 @@ public class AuthService {
     }
 
     public AuthResponseWrapper<LoginResponse> login(LoginRequest request) {
+        log.info("Attempting to log in user with email: {}", request.getEmail());
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
 
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+            log.info("User authenticated successfully: {}", request.getEmail());
 
             String accessToken = jwtUtils.generateAccessToken(userDetails, userDetails.getId());
             String refreshToken = jwtUtils.generateRefreshToken(userDetails, userDetails.getId());
@@ -102,12 +107,15 @@ public class AuthService {
                     .build();
 
         } catch (BadCredentialsException e) {
+            log.error("Login failed. Invalid credentials for user with email: {}", request.getEmail());
             throw new InvalidCredentialsException("Invalid email or password");
         }
     }
 
     public AuthResponseWrapper<RefreshTokenResponse> refreshToken(String refreshToken) {
+        log.info("Attempting to refresh token");
         if (!jwtUtils.isTokenValid(refreshToken)) {
+            log.error("Refresh token failed. Invalid or expired token");
             throw new InvalidTokenException("Invalid or expired refresh token");
         }
 
