@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import "../../styles/ItemCartMain.css";
-import {useAuth} from "../../context/AuthContext";
+import {useAuth} from "../../hooks/useAuth";
 import api from "../../api/axios";
 
 interface Product {

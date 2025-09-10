@@ -13,7 +13,7 @@ interface User {
 
 interface AuthData {
     accessToken: string;
-    refreshToken: string;
+    //refreshToken: string;
     user: User;
 }
 
@@ -42,43 +42,56 @@ type AuthProviderProps = {
 export function AuthProvider({ children }: AuthProviderProps) {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState<User | null>(null);
-    const [accessToken, setAccessToken] = useState<string | null>(null);
+    const [accessToken, setAccessTokenState] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        const unsubscribe = subscribe((token) => setAccessToken(token));
+        const unsubscribe = subscribe((token) => {
+            setAccessTokenState(token)
+        });
         return () => {
             unsubscribe();
         }
     }, []);
 
+    useEffect(() =>{
+        const checkAuth = async () => {
+            try {
+                const response = await api.post('/auth/refresh');
+                logIn(response.data);
+            } catch (err){
+                console.log("Пользователь не авторизован");
+            } finally {
+                setLoading(false);
+            }
+        };
+        checkAuth();
+    }, []);
+
     const logIn = (authData: AuthData) => {
         setIsLoggedIn(true);
         setUser(authData.user);
-        setAccessToken(authData.accessToken);
+        setAccessTokenState(authData.accessToken);
         setToken(authData.accessToken);
     }
 
     const logOut = () => {
         setIsLoggedIn(false);
         setUser(null);
-        setAccessToken(null);
+        setAccessTokenState(null);
         setToken(null);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('user');
         api.post('/auth/logout')
             .then(res =>
-                alert(res.data.message))
+                console.log(res.data.message))
             .catch(err => alert(err.message));
     }
 
-    const value = {isLoggedIn, user, accessToken, logIn, logOut, setAccessToken};
+    const value = {isLoggedIn, user, accessToken, logIn, logOut, setAccessToken: setAccessTokenState};
+    if (loading) {return <div>Загрузка...</div>}
     return (
         <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
 }
-// custom hook чтобы использовать контекст в других компонентах
-export function useAuth (){
-    return useContext(AuthContext);
-}
+export default AuthContext;

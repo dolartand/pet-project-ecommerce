@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import '../../styles/Authentication.css';
 import api from "../../api/axios";
-import {useAuth} from "../../context/AuthContext";
+import {useAuth} from "../../hooks/useAuth";
 
 type LogInPageProps = {
     onShowResetPage: () => void;

@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import ItemCartBuy from "../components/layout/ItemCartBuy";
 import '../styles/ShoppingBag.css';
 import api from "../api/axios";
@@ -28,7 +28,7 @@ function ShoppingBagPage() {
     },[goods]);
     useEffect(() => {
         setLoading(true);
-        api.get('/cart')
+        api.get('http://localhost:8080/api/cart')
             .then(res =>{
                 setGoods(res.data);
                 const allItems = res.data.map((item: Product) => item.id);

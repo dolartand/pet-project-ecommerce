@@ -5,7 +5,7 @@ import AuthMode from "./components/layout/AuthMode";
 import ShoppingBagPage from "./pages/ShoppingBagPage";
 import MainPage from "./pages/MainPage";
 import Sidebar from "./components/layout/Sidebar";
-import {AuthProvider, useAuth} from "./context/AuthContext";
+import {useAuth} from "./hooks/useAuth";
 import styles from 'styles/global.module.css';
 
 type AuthModeType = 'login' | 'signup' | 'reset' | null;
@@ -19,7 +19,6 @@ function App() {
     const navigate = useNavigate();
 
     const handleOpenLogInModal = () => {
-        // setIsAuthModalOpen(true);
         setAuthMode('login');
     }
 
@@ -53,12 +52,13 @@ function App() {
     }
 
     const handleCartClick = () => {
-        if (isLoggedIn) navigate('/cart');
+        debugger;
+        if (isLoggedIn)
+            setTimeout(()=> navigate('/cart'), 0);
         else handleOpenLogInModal();
     }
 
     return (
-        <AuthProvider>
             <div className="App">
                 <Header onLoginClick={()=>setAuthMode('login')} onCartClick={handleCartClick}
                         onMenuClick={handleSidebarToggle} />
@@ -80,7 +80,6 @@ function App() {
                     </Routes>
                 </main>
             </div>
-        </AuthProvider>
-  );
+    );
 }
 export default App;
