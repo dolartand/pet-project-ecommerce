@@ -5,10 +5,27 @@ import AuthMode from "./components/layout/AuthMode";
 import ShoppingBagPage from "./pages/ShoppingBagPage";
 import MainPage from "./pages/MainPage";
 import Sidebar from "./components/layout/Sidebar";
+import FilterPage from "./components/layout/FilterPage";
 import {useAuth} from "./hooks/useAuth";
 import styles from 'styles/global.module.css';
 
 type AuthModeType = 'login' | 'signup' | 'reset' | null;
+export interface Filters {
+    search?: string;
+    categoryId?: number;
+    page?: number;
+    size?: number;
+    minPrice?: number;
+    maxPrice?: number;
+    available?: boolean;
+    sortBy?: string;
+    sortDirection?: string;
+}
+// interface Category {
+//     id: number;
+//     name: string;
+//     description?: string;
+// }
 
 function App() {
     const [authMode, setAuthMode] = useState<AuthModeType>(null);
@@ -16,7 +33,17 @@ function App() {
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
     const [isClosing, setIsClosing] = useState<boolean>(false);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+    const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
+    const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
+    const [isFilterClosing, setIsFilterClosing] = useState<boolean>(false);
     const navigate = useNavigate();
+
+    const [filters, setFilters] = useState<Filters>({
+       page: 1,
+       size: 20,
+       sortBy: "createdAt",
+       sortDirection: "desc",
+    });
 
     const handleOpenLogInModal = () => {
         setAuthMode('login');
@@ -37,6 +64,14 @@ function App() {
         },300);
         return () => {clearTimeout(timer);};
     },[isClosing]);
+    useEffect(()=>{
+        if (!isFilterClosing) return;
+        const timer = setTimeout(()=>{
+            setIsFilterClosing(false);
+            setIsFilterOpen(false);
+        },300);
+        return () => {clearTimeout(timer);};
+    },[isFilterClosing]);
 
     const handleSidebarClose = () => { setIsClosing(true); }
     const handleSidebarToggle = () => {
@@ -48,22 +83,35 @@ function App() {
     }
 
     const handleCategorySelect = (categoryId: number) => {
+        setFilters(prev=>({...prev, categoryId, page: 1}));
         setSelectedCategory(categoryId);
+        handleSidebarClose();
     }
 
     const handleCartClick = () => {
-        debugger;
         if (isLoggedIn)
-            setTimeout(()=> navigate('/cart'), 0);
+            // setTimeout(()=> navigate('/cart'), 0);
+            setIsCartOpen(true);
         else handleOpenLogInModal();
     }
+
+    const handleFilterToggle = () => {
+        if (isFilterOpen)    setIsFilterClosing(true);
+        else {
+            setIsFilterOpen(true);
+            setIsFilterClosing(false);
+        }
+    }
+    const handleFilterClose = () => {setIsFilterClosing(true);}
 
     return (
             <div className="App">
                 <Header onLoginClick={()=>setAuthMode('login')} onCartClick={handleCartClick}
-                        onMenuClick={handleSidebarToggle} />
+                        onMenuClick={handleSidebarToggle} onFilterClick={handleFilterToggle} />
                 <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose}
                          isClosing={isClosing} handleCategorySelected={handleCategorySelect} />
+                <FilterPage isOpen={isFilterOpen} isClosing={isFilterClosing} onClose={handleFilterClose}
+                        filters={filters} setFilters={setFilters}/>
                 {authMode && (
                     <AuthMode mode={authMode}
                               onClose={() => setAuthMode(null)}
@@ -74,10 +122,11 @@ function App() {
                               onBackToLogIn={()=>setAuthMode('login')}/>
                 )}
                 <main>
-                    <Routes>
-                        <Route path="/" element={<MainPage categoryId={selectedCategory} handleOpenLoginModal={handleOpenLogInModal} />} />
-                        <Route path="/cart" element={<ShoppingBagPage />} />
-                    </Routes>
+                    {isCartOpen ? (
+                        <ShoppingBagPage/>
+                    ):(
+                        <MainPage filters={filters} categoryId={selectedCategory} handleOpenLoginModal={handleOpenLogInModal}/>
+                    )}
                 </main>
             </div>
     );

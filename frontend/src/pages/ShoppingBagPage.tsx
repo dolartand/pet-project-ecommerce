@@ -28,7 +28,7 @@ function ShoppingBagPage() {
     },[goods]);
     useEffect(() => {
         setLoading(true);
-        api.get('http://localhost:8080/api/cart')
+        api.get('/cart')
             .then(res =>{
                 setGoods(res.data);
                 const allItems = res.data.map((item: Product) => item.id);

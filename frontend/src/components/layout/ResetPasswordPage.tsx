@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import api from "../../api/axios";
-import '../../styles/Authentication.css';
+import '../../styles/FormsAndModals.css';
 
 type ResetPasswordPageProps = {
     onBackToLogIn: () => void;

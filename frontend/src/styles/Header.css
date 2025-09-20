@@ -79,8 +79,9 @@ ul li {
 
     transition: transform 0.3s ease;
 }
-.search-block input:hover {
-    border: none;
+.search-block input:hover,
+.search-block input:focus {
+    border-color: #176876;
     transform: scale(1.01);
 }
 .search-block button {

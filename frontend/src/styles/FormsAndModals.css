@@ -1,3 +1,4 @@
+/*файл для модальных окон аутентификации и фильтрации поиска товаров*/
 .error-msg {
     margin-bottom: 0.5em;
     color: #c00;
@@ -8,7 +9,7 @@
     color: green;
     font-size: 0.9em;
 }
-.modal-backdrop {
+.modal-backdrop, .filter-content {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -22,10 +23,10 @@
     opacity: 1;
     transition: opacity 0.3s ease;
 }
-.modal-backdrop.closing {
+.modal-backdrop.closing, .filter-content.closing {
     opacity: 0;
 }
-.page-content{
+.page-content, .filter-container{
     background: #fff;
     border-radius: 0.6em;
     padding: 1em;
@@ -98,4 +99,69 @@ input{
 }
 .submit-btn:hover{
     transform: scale(1.02);
+}
+.checkbox-label{
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+.checkbox-label input[type="checkbox"]{
+    appearance: none;
+    -webkit-appearance: none;
+    width: 2em;
+    height: 2em;
+    border: 2px solid #8BB4C7;
+    border-radius: 0.7em;
+    transition: background-color 0.2s ease-in-out;
+    cursor: pointer;
+}
+.checkbox-label input[type="checkbox"]:checked {
+    background-color: #176876;
+    border-color: #176876;
+}
+.checkbox-label input[type="checkbox"]::after{
+    color: white;
+    font-size: 1.5em;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+.checkbox-label input[type="checkbox"]:checked::after{
+    opacity: 1;
+}
+input{
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+input:hover, input:focus {
+    border-color: #176876;
+}
+.sorting{
+    display: flex;
+    gap: 0.5em;
+    width: 100%;
+    margin: 0.5em 0;
+}
+.sorting select{
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: 0.7em;
+    border: thin solid lightblue;
+    font-size: 1em;
+    padding: 0.5em;
+    margin: 0.5em;
+    cursor: pointer;
+    color: #176876 ;
+    background-color: transparent;
+    transition: border-color 0.3s ease;
+    flex-grow: 1;
+    width: 52%;
+}
+.sorting select:focus,
+.sorting select:hover{
+    border-color: #8BB4C7;
+    outline: none;
 }

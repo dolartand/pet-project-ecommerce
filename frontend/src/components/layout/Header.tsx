@@ -6,9 +6,10 @@ type HeaderProps = {
     onLoginClick: () => void;
     onCartClick: () => void;
     onMenuClick: () => void;
+    onFilterClick: () => void;
 };
 
-function Header({onLoginClick, onCartClick, onMenuClick}: HeaderProps) {
+function Header({onLoginClick, onCartClick, onMenuClick, onFilterClick}: HeaderProps) {
 
     return (
         <header className="navigation-block">
@@ -32,7 +33,9 @@ function Header({onLoginClick, onCartClick, onMenuClick}: HeaderProps) {
                     <div className='search-block'>
                         <input type="text" placeholder="Найти на сайте"/>
                         <button className='submit-input'><img src='https://img.icons8.com/?size=100&id=132&format=png&color=000000' alt="Поиск" loading="lazy"/></button>
-                        <button id='filterBtn'><img src="/assets/filter.png" alt="Фильтр" loading="lazy"/></button>
+                        <button id='filterBtn' type='button' onClick={onFilterClick}>
+                            <img src="/assets/filter.png" alt="Фильтр" loading="lazy"/>
+                        </button>
                     </div>
                     <div className='header-navbar hide-mobile'>
                         <ul>

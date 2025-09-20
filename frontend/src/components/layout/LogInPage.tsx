@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import '../../styles/Authentication.css';
+import '../../styles/FormsAndModals.css';
 import api from "../../api/axios";
 import {useAuth} from "../../hooks/useAuth";
 

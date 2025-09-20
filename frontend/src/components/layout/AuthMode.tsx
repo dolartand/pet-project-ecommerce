@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import LogInPage from "./LogInPage";
 import SignUpPage from "./SignUpPage";
-import '../../styles/Authentication.css';
+import '../../styles/FormsAndModals.css';
 import ResetPasswordPage from "./ResetPasswordPage";
 
 type AuthModeProps = {
