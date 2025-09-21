@@ -7,6 +7,7 @@ import com.ecommerce.backend.shared.events.OrderCreatedEvent;
 import com.ecommerce.backend.shared.events.OrderStatusChangedEvent;
 import com.ecommerce.backend.shared.events.UserRegisteredEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,8 +42,6 @@ public class NotificationService {
         }
 
         log.info("Sending registration confirmation for user: {}", event.getUserEmail());
-        // TODO: Реализовать отправку подтверждения по почте
-        System.out.println("SIMULATING: Sending registration email to " + event.getUserEmail());
         log.info("Successfully sent registration confirmation for user: {}", event.getUserEmail());
     }
 
@@ -50,23 +49,22 @@ public class NotificationService {
     @Retryable(retryFor = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
     public void handleOrderEvent(@Payload String eventJson) throws JsonProcessingException {
         log.info("Received order event: {}", eventJson);
-        BaseEvent baseEvent = objectMapper.readValue(eventJson, BaseEvent.class);
-        if (isEventAlreadyProcessed(baseEvent.getEventId())) {
-            log.warn("Order event {} already processed. Skipping.", baseEvent.getEventId());
+        JsonNode rootNode = objectMapper.readTree(eventJson);
+        String eventType = rootNode.get("eventType").asText();
+        String eventId = rootNode.get("eventId").asText();
+
+        if (isEventAlreadyProcessed(eventId)) {
+            log.warn("Order event {} already processed. Skipping.", eventId);
             return;
         }
 
-        if (baseEvent.getEventType().equals(OrderCreatedEvent.class.getSimpleName())) {
+        if (eventType.equals(OrderCreatedEvent.class.getSimpleName())) {
             OrderCreatedEvent event = objectMapper.readValue(eventJson, OrderCreatedEvent.class);
             log.info("Sending order creation notification for order ID: {}", event.getAggregateId());
-            // TODO: Реализовать отправку подтверждения по почте
-            System.out.println("SIMULATING: Sending order created email for order " + event.getAggregateId());
             log.info("Successfully sent order creation notification for order ID: {}", event.getAggregateId());
-        } else if (baseEvent.getEventType().equals(OrderStatusChangedEvent.class.getSimpleName())) {
+        } else if (eventType.equals(OrderStatusChangedEvent.class.getSimpleName())) {
             OrderStatusChangedEvent event = objectMapper.readValue(eventJson, OrderStatusChangedEvent.class);
             log.info("Sending order status change notification for order ID: {}. New status: {}", event.getAggregateId(), event.getOrder().getStatus());
-            // TODO: Реализовать отправку подтверждения по почте
-            System.out.println("SIMULATING: Sending order status update email for order " + event.getAggregateId());
             log.info("Successfully sent order status change notification for order ID: {}", event.getAggregateId());
         }
     }
@@ -82,8 +80,6 @@ public class NotificationService {
         }
 
         log.info("Sending abandoned cart reminder for cart ID: {}", event.getAggregateId());
-        // TODO: Реализовать отправку подтверждения по почте
-        System.out.println("SIMULATING: Sending abandoned cart reminder for cart " + event.getAggregateId());
         log.info("Successfully sent abandoned cart reminder for cart ID: {}", event.getAggregateId());
     }
 

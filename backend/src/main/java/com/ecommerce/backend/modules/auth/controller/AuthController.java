@@ -30,7 +30,7 @@ public class AuthController {
         authService.register(request);
 
         Map<String, String> response = Map.of("message", "Пользователь успешно зарегистрирован.");
-        log.info("User registered successfully with emaul: {}", request.getEmail());
+        log.info("User registered successfully with email: {}", request.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

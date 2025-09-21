@@ -2,7 +2,7 @@ package com.ecommerce.backend.modules.user.controller;
 
 import com.ecommerce.backend.modules.user.dto.UpdateProfileRequest;
 import com.ecommerce.backend.modules.user.dto.UserProfileResponse;
-import com.ecommerce.backend.modules.user.sevice.UserService;
+import com.ecommerce.backend.modules.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class UserController {
 
-    private UserService userService;
+    private final UserService userService;
 
     @GetMapping("/profile")
     public ResponseEntity<UserProfileResponse> getCurrentUserProfile(HttpServletRequest request) {

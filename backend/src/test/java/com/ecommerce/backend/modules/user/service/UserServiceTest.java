@@ -5,7 +5,6 @@ import com.ecommerce.backend.modules.user.dto.UpdateProfileRequest;
 import com.ecommerce.backend.modules.user.dto.UserProfileResponse;
 import com.ecommerce.backend.modules.user.entity.User;
 import com.ecommerce.backend.modules.user.repository.UserRepository;
-import com.ecommerce.backend.modules.user.sevice.UserServiceImpl;
 import com.ecommerce.backend.shared.exception.InvalidCredentialsException;
 import com.ecommerce.backend.shared.exception.UserNotFoundException;
 import com.ecommerce.backend.shared.exception.ValidationException;
@@ -25,7 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceImplTest {
+public class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -34,7 +33,7 @@ public class UserServiceImplTest {
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
-    private UserServiceImpl userService;
+    private UserService userService;
 
     private User user;
 

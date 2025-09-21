@@ -1,4 +1,4 @@
-package com.ecommerce.backend.modules.user.sevice;
+package com.ecommerce.backend.modules.user.service;
 
 import com.ecommerce.backend.config.CacheConfig;
 import com.ecommerce.backend.modules.order.service.OrderService;
@@ -29,13 +29,12 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @Transactional
 @Slf4j
-public class UserServiceImpl implements UserService {
+public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final OrderService orderService;
 
-    @Override
     @Transactional(readOnly = true)
     @Cacheable(value = CacheConfig.CACHE_USER_PROFILE, key = "#userId")
     public UserProfileResponse getCurrentUserProfile(Long userId) {
@@ -54,7 +53,6 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    @Override
     @CachePut(value = CacheConfig.CACHE_USER_PROFILE, key = "#userId")
     public UserProfileResponse updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {
         log.info("Updating profile for user with id: {}. Update: {}", userId, updateProfileRequest);
@@ -82,7 +80,6 @@ public class UserServiceImpl implements UserService {
     /**
      * На данный момент метод не используется, так как реализуется базовый функционал
      */
-    @Override
     @CacheEvict(value = CacheConfig.CACHE_USER_PROFILE, key = "#userId")
     public void changePassword(Long userId, ChangePasswordRequest request) {
         log.info("Changing password for user with id: {}", userId);
@@ -111,7 +108,6 @@ public class UserServiceImpl implements UserService {
         log.info("Password changed for user: {}", user.getEmail());
     }
 
-    @Override
     @PreAuthorize("hasRole('ADMIN')")
     public Page<AdminUserDto> getAllUsers(Pageable pageable) {
         log.info("Admin fetching all users. Pageable: {}", pageable);
@@ -134,7 +130,6 @@ public class UserServiceImpl implements UserService {
     /**
      * На данный момент метод не используется, так как реализуется базовый функционал
      */
-    @Override
     @Transactional(readOnly = true)
     public AdminUserDto getUserById(Long userId) {
         log.info("Admin fetching user by id: {}", userId);

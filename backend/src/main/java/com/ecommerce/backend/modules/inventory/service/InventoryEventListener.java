@@ -7,6 +7,7 @@ import com.ecommerce.backend.shared.events.BaseEvent;
 import com.ecommerce.backend.shared.events.OrderCreatedEvent;
 import com.ecommerce.backend.shared.events.OrderStatusChangedEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,22 +41,24 @@ public class InventoryEventListener {
             backoff = @Backoff(delay = 2000, multiplier = 2)
     )
     public void handleOrderEvent(@Payload String eventJson) throws JsonProcessingException {
-        BaseEvent baseEvent = objectMapper.readValue(eventJson, BaseEvent.class);
+        JsonNode rootNode = objectMapper.readTree(eventJson);
+        String eventType = rootNode.get("eventType").asText();
+        String eventId = rootNode.get("eventId").asText();
 
-        if (!isEventAlreadyProcessed(baseEvent.getEventId())) {
-            log.info("Received event {} for inventory processing.", baseEvent.getEventId());
+        if (!isEventAlreadyProcessed(eventId)) {
+            log.info("Received event {} for inventory processing.", eventId);
 
-            if (baseEvent.getEventType().equals(OrderCreatedEvent.class.getSimpleName())) {
+            if (eventType.equals(OrderCreatedEvent.class.getSimpleName())) {
                 OrderCreatedEvent event = objectMapper.readValue(eventJson, OrderCreatedEvent.class);
                 processOrderCreation(event.getOrder());
-            } else if (baseEvent.getEventType().equals(OrderStatusChangedEvent.class.getSimpleName())) {
+            } else if (eventType.equals(OrderStatusChangedEvent.class.getSimpleName())) {
                 OrderStatusChangedEvent event = objectMapper.readValue(eventJson, OrderStatusChangedEvent.class);
                 processOrderStatusChange(event.getOrder());
             } else {
-                log.warn("Unknown event type received in inventory listener: {}", baseEvent.getEventType());
+                log.warn("Unknown event type received in inventory listener: {}", eventType);
             }
         } else {
-            log.warn("Event {} already processed. Skipping.", baseEvent.getEventId());
+            log.warn("Event {} already processed. Skipping.", eventId);
         }
     }
 

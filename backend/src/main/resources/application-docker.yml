@@ -2,7 +2,6 @@ spring:
   application:
     name: ecommerce-backend
 
-  # База данных
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
@@ -15,7 +14,6 @@ spring:
       max-lifetime: 600000
       connection-timeout: 20000
 
-  # JPA/Hibernate
   jpa:
     hibernate:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:none}
@@ -27,14 +25,12 @@ spring:
         use_sql_comments: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  # Flyway миграции
   flyway:
     enabled: ${SPRING_FLYWAY_ENABLED:true}
     locations: ${SPRING_FLYWAY_LOCATIONS:classpath:db/migration}
     baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:true}
     validate-on-migrate: true
 
-  # Redis конфигурация для JWT токенов
   data:
     redis:
       host: ${SPRING_DATA_REDIS_HOST}
@@ -48,7 +44,6 @@ spring:
           min-idle: 0
           max-wait: -1ms
 
-  # RabbitMQ конфигурация
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST}
     port: ${SPRING_RABBITMQ_PORT}
@@ -65,27 +60,12 @@ spring:
         concurrency: 1
         max-concurrency: 5
 
-  # Mail конфигурация
-  mail:
-    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
-    port: ${SPRING_MAIL_PORT:587}
-    username: ${SPRING_MAIL_USERNAME:}
-    password: ${SPRING_MAIL_PASSWORD:}
-    properties:
-      mail:
-        smtp:
-          auth: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH:true}
-          starttls:
-            enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:true}
-
-# JWT настройки (используются твоим JwtProps)
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}
   refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}
   issuer: ${JWT_ISSUER:ecommerce-api}
 
-# Actuator для health checks
 management:
   endpoints:
     web:
@@ -103,7 +83,6 @@ management:
     db:
       enabled: true
 
-# Logging
 logging:
   level:
     com.ecommerce.backend: ${LOGGING_LEVEL_COM_ECOMMERCE_BACKEND:INFO}
@@ -115,7 +94,6 @@ logging:
     console: "%d{HH:mm:ss.SSS} %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"
 
-# Server configuration
 server:
   port: 8080
   servlet:

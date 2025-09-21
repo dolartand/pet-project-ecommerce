@@ -2,7 +2,7 @@ package com.ecommerce.backend.modules.user.controller;
 
 import com.ecommerce.backend.modules.user.dto.AdminUserDto;
 import com.ecommerce.backend.modules.user.dto.UserListResponse;
-import com.ecommerce.backend.modules.user.sevice.UserService;
+import com.ecommerce.backend.modules.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
