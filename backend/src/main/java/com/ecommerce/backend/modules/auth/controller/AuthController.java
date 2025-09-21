@@ -78,12 +78,29 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    public ResponseEntity<ForgotPasswordResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         log.info("Requesting password reset for email: {}", request.getEmail());
-        authService.forgotPassword(request);
+        ForgotPasswordResponse response = authService.forgotPassword(request);
+        return ResponseEntity.ok(response);
+    }
 
-        Map<String, String> response = Map.of("message", "Инструкции по восстановлению пароля отправлены на ваш email");
-        log.info("Password reset instructions sent to email: {}", request.getEmail());
+    @GetMapping("/validate-reset-token")
+    public ResponseEntity<Map<String, Boolean>> validateResetToken(@RequestParam String token) {
+        log.info("Validating reset token");
+        boolean isValid = authService.validateResetToken(token);
+
+        Map<String, Boolean> response = Map.of("valid", isValid);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        log.info("Resetting password with token");
+        authService.resetPassword(request);
+
+        Map<String, String> response = Map.of(
+                "message", "Password has been changed successfully. Use new password for sign in"
+        );
         return ResponseEntity.ok(response);
     }
 }

@@ -10,14 +10,13 @@ import com.ecommerce.backend.modules.user.entity.UserRole;
 import com.ecommerce.backend.modules.user.repository.UserRepository;
 import com.ecommerce.backend.shared.dto.*;
 import com.ecommerce.backend.shared.events.UserRegisteredEvent;
-import com.ecommerce.backend.shared.exception.InvalidCredentialsException;
-import com.ecommerce.backend.shared.exception.InvalidTokenException;
-import com.ecommerce.backend.shared.exception.UserAlreadyExistsException;
-import com.ecommerce.backend.shared.exception.UserNotFoundException;
+import com.ecommerce.backend.shared.exception.*;
 import com.ecommerce.backend.shared.outbox.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,8 +26,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +45,13 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final RabbitTemplate rabbitTemplate;
     private final EventPublisher eventPublisher;
+    private final RedisTemplate<Object, Object> redisTemplate;
+
+    @Value("${password.reset.token.expiration:3600}")
+    private long resetTokenExpiration;
+
+    @Value("${password.reset.max-attemtps:3}")
+    private int maxResetAttempts;
 
     public void register(RegisterRequest request) {
         log.info("Attempting to register user with email: {}", request.getEmail());
@@ -145,14 +153,91 @@ public class AuthService {
         log.info("User logged out successfully: userId={}", userId);
     }
 
-    public void forgotPassword(ForgotPasswordRequest request) {
+    /**
+     * Для проекта возвращаем токен в ответе
+     */
+    public ForgotPasswordResponse forgotPassword(ForgotPasswordRequest request) {
+        log.info("Password reset requested for email: {}", request.getEmail());
+
+        String rateLimitKey = "password_reset_attempts" + request.getEmail();
+        String attempts = redisTemplate.opsForValue().get(rateLimitKey);
+
+        if (attempts != null && Integer.parseInt(attempts) >= maxResetAttempts) {
+            log.warn("Too many password reset attempts for email: {}", request.getEmail());
+            throw new TooManyAttemptsException("Too much attempts. Try again later.");
+        }
+
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + request.getEmail()));
 
         String resetToken = UUID.randomUUID().toString();
 
-        // TODO: Добавить реализацию восстановления пароля
+        String tokenKey = "password_reset_token:" + resetToken;
+        String userIdValue = String.valueOf(user.getId());
 
-        log.info("Password reset requested for user: {}", user.getEmail());
+        redisTemplate.opsForValue().set(
+                tokenKey,
+                userIdValue,
+                Duration.ofSeconds(resetTokenExpiration)
+        );
+
+        redisTemplate.opsForValue().increment(rateLimitKey);
+        redisTemplate.expire(rateLimitKey, 24, TimeUnit.HOURS);
+
+        String userTokenKey = "user_reset_token" + user.getId();
+        redisTemplate.opsForValue().set(
+                userTokenKey,
+                resetToken,
+                Duration.ofSeconds(resetTokenExpiration)
+        );
+
+        log.info("Password reset token generated for user: {}", user.getEmail());
+
+        return ForgotPasswordResponse.builder()
+                .message("Token for reset password created")
+                .token(resetToken)
+                .build();
+    }
+
+    public boolean validateResetToken(String token) {
+        String tokenKey = "password_reset_token:" + token;
+        return redisTemplate.hasKey(tokenKey);
+    }
+
+    public void resetPassword(ResetPasswordRequest req) {
+        log.info("Attempting for reset password");
+
+        if (req.getNewPassword().equals(req.getConfirmPassword())) {
+            throw new ValidationException("Passwords are not match");
+        }
+
+        String tokenKey = "password_reset_token:" + req.getToken();
+        String userIdStr = redisTemplate.opsForValue().get(tokenKey);
+
+        if (userIdStr == null) {
+            log.error("Invalid or expired reset token");
+            throw new InvalidTokenException("Reset token is not valid or expired");
+        }
+
+        Long userId = Long.parseLong(userIdStr);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User is not found"));
+
+        if (passwordEncoder.matches(req.getNewPassword(), user.getPasswordHash())) {
+            throw new ValidationException("The new password must be different from the current one");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(req.getNewPassword()));
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        redisTemplate.delete(tokenKey);
+
+        String userTokenKey = "user_reset_token:" + userId;
+        redisTemplate.delete(userTokenKey);
+
+        refreshTokenService.revokeAllUserTokens(userId);
+
+        log.info("Password successfully reset for user: {}", user.getEmail());
     }
 }
