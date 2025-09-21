@@ -68,7 +68,8 @@ public class SecurityConfig {
                         authorizeRequests
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login",
-                                        "/api/auth/refresh", "/api/auth/forgot-password").permitAll()
+                                        "/api/auth/refresh", "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/auth/validate-reset-token").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/categories", "/api/products",
                                         "/api/products/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/products/*/reviews").permitAll()

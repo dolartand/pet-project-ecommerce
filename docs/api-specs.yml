@@ -789,12 +789,103 @@ paths:
                   message:
                     type: string
                     example: "Инструкции по восстановлению пароля отправлены на ваш email"
+                  token:
+                    type: string
+                    description: Токен для сброса пароля (может быть null в production)
+                    nullable: true
+                    example: "abc123def456"
         '404':
           description: Пользователь с таким email не найден
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/validate-reset-token:
+    get:
+      tags:
+        - Authentication
+      summary: Проверка токена сброса пароля
+      description: Проверяет действительность токена для сброса пароля
+      security: [ ]
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: Токен для сброса пароля
+          schema:
+            type: string
+          example: "abc123def456"
+      responses:
+        '200':
+          description: Результат валидации токена
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - valid
+                properties:
+                  valid:
+                    type: boolean
+                    description: Действителен ли токен
+                    example: true
+
+    /auth/reset-password:
+      post:
+        tags:
+          - Authentication
+        summary: Сброс пароля
+        description: Сбрасывает пароль пользователя с использованием токена
+        security: [ ]
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - token
+                  - newPassword
+                  - confirmPassword
+                properties:
+                  token:
+                    type: string
+                    description: Токен для сброса пароля
+                    example: "abc123def456"
+                  newPassword:
+                    type: string
+                    minLength: 8
+                    pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$'
+                    description: "Новый пароль должен содержать минимум 8 символов, включая заглавную букву, строчную букву и цифру"
+                    example: "NewSecurePassword123!"
+                  confirmPassword:
+                    type: string
+                    description: Подтверждение нового пароля
+                    example: "NewSecurePassword123!"
+        responses:
+          '200':
+            description: Пароль успешно изменен
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: "Password has been changed successfully. Use new password for sign in"
+          '400':
+            description: Ошибка валидации или пароли не совпадают
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+          '401':
+            description: Недействительный или истекший токен
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
 
   /users/profile:
     get:

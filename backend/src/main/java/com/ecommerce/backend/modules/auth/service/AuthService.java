@@ -45,12 +45,12 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final RabbitTemplate rabbitTemplate;
     private final EventPublisher eventPublisher;
-    private final RedisTemplate<Object, Object> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Value("${password.reset.token.expiration:3600}")
     private long resetTokenExpiration;
 
-    @Value("${password.reset.max-attemtps:3}")
+    @Value("${password.reset.max-attempts:3}")
     private int maxResetAttempts;
 
     public void register(RegisterRequest request) {
@@ -159,7 +159,7 @@ public class AuthService {
     public ForgotPasswordResponse forgotPassword(ForgotPasswordRequest request) {
         log.info("Password reset requested for email: {}", request.getEmail());
 
-        String rateLimitKey = "password_reset_attempts" + request.getEmail();
+        String rateLimitKey = "password_reset_attempts:" + request.getEmail();
         String attempts = redisTemplate.opsForValue().get(rateLimitKey);
 
         if (attempts != null && Integer.parseInt(attempts) >= maxResetAttempts) {
@@ -184,7 +184,7 @@ public class AuthService {
         redisTemplate.opsForValue().increment(rateLimitKey);
         redisTemplate.expire(rateLimitKey, 24, TimeUnit.HOURS);
 
-        String userTokenKey = "user_reset_token" + user.getId();
+        String userTokenKey = "user_reset_token:" + user.getId();
         redisTemplate.opsForValue().set(
                 userTokenKey,
                 resetToken,
