@@ -763,7 +763,7 @@ paths:
       tags:
         - Authentication
       summary: Восстановление пароля
-      description: Отправляет ссылку для восстановления пароля на email пользователя
+      description: Генерирует токен для восстановления пароля
       security: []
       requestBody:
         required: true
@@ -780,7 +780,7 @@ paths:
                   example: "john.doe@example.com"
       responses:
         '200':
-          description: Инструкции по восстановлению отправлены на email
+          description: Успешное создание токена для восстановления пароля
           content:
             application/json:
               schema:
@@ -788,10 +788,10 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Инструкции по восстановлению пароля отправлены на ваш email"
+                    example: "Token created successfuly"
                   token:
                     type: string
-                    description: Токен для сброса пароля (может быть null в production)
+                    description: Токен для сброса пароля
                     nullable: true
                     example: "abc123def456"
         '404':
