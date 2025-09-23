@@ -16,15 +16,14 @@ interface Product {
     available: boolean;
 }
 type MainPageProps = {
-    categoryId: number | null;
     filters: Filters;
     handleOpenLoginModal: () => void;
 }
 
-function cleanParams(filters: Filters, categoryId: number | null) {
+function cleanParams(filters: Filters) {
     const params: any = {};
     if (filters.search) params.search = filters.search;
-    if (categoryId != null) params.categoryId = categoryId;
+    if (filters.categoryId != null && filters.categoryId !== undefined) params.categoryId = filters.categoryId;
     if (filters.minPrice != null) params.minPrice = filters.minPrice;
     if (filters.maxPrice != null) params.maxPrice = filters.maxPrice;
     if (filters.available != null) params.available = filters.available;
@@ -35,7 +34,7 @@ function cleanParams(filters: Filters, categoryId: number | null) {
     return params;
 }
 
-function MainPage ({categoryId, handleOpenLoginModal, filters}: MainPageProps) {
+function MainPage ({handleOpenLoginModal, filters}: MainPageProps) {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
@@ -43,13 +42,21 @@ function MainPage ({categoryId, handleOpenLoginModal, filters}: MainPageProps) {
         let isMounted = true;
         setLoading(true);
         let url = '/products';
-        const params: any = cleanParams(filters,categoryId);
+        const params: any = cleanParams(filters);
+        console.log(params);
         api.get(url, {params})
-            .then(res =>{
-                if (isMounted && res.data && Array.isArray(res.data.content)) {
-                    setProducts(res.data.content);
+            .then(res => {
+                console.log('Ответ backend:', res.data);
+                if (isMounted) {
+                    const productsData = res.data.content;
+                    if (Array.isArray(productsData)) {
+                        setProducts(productsData);
+                    } else {
+                        console.warn("Получена неожиданная структура данных от API:", res.data);
+                        setProducts([]);
+                    }
+                    setError(null);
                 }
-                setError(null);
             })
             .catch(err => {
                 if(isMounted){
@@ -57,13 +64,12 @@ function MainPage ({categoryId, handleOpenLoginModal, filters}: MainPageProps) {
                     setError('Не удалось загрузить товары. Попробуйте позже.')
                     setProducts([]);
                 }
-
             })
             .finally(() => {
                 if(isMounted)   setLoading(false);
             });
         return () => {isMounted = false;};
-    },[categoryId, filters])
+    },[filters])
 
     if (loading)    return <div>Загрузка...</div>
     if (error)    return <div className='error-msg'>{error}</div>;

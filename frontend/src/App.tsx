@@ -21,6 +21,12 @@ export interface Filters {
     sortBy?: string;
     sortDirection?: string;
 }
+export const INITIAL_FILTERS: Filters = {
+    page: 0,
+    size: 20,
+    sortBy: "createdAt",
+    sortDirection: "desc",
+}
 // interface Category {
 //     id: number;
 //     name: string;
@@ -32,18 +38,13 @@ function App() {
     const {isLoggedIn} = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
     const [isClosing, setIsClosing] = useState<boolean>(false);
-    const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+    // const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
     const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
     const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
     const [isFilterClosing, setIsFilterClosing] = useState<boolean>(false);
     const navigate = useNavigate();
 
-    const [filters, setFilters] = useState<Filters>({
-       page: 1,
-       size: 20,
-       sortBy: "createdAt",
-       sortDirection: "desc",
-    });
+    const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
 
     const handleOpenLogInModal = () => {
         setAuthMode('login');
@@ -83,8 +84,8 @@ function App() {
     }
 
     const handleCategorySelect = (categoryId: number) => {
-        setFilters(prev=>({...prev, categoryId, page: 1}));
-        setSelectedCategory(categoryId);
+        setFilters(prev=>({...prev, categoryId: categoryId ?? undefined, page: 0}));
+        // setSelectedCategory(categoryId);
         handleSidebarClose();
     }
 
@@ -125,7 +126,7 @@ function App() {
                     {isCartOpen ? (
                         <ShoppingBagPage/>
                     ):(
-                        <MainPage filters={filters} categoryId={selectedCategory} handleOpenLoginModal={handleOpenLogInModal}/>
+                        <MainPage filters={filters} handleOpenLoginModal={handleOpenLogInModal}/>
                     )}
                 </main>
             </div>

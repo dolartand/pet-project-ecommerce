@@ -1,5 +1,5 @@
-import React, {JSX, useEffect, useState} from 'react';
-import {Filters} from '../../App';
+import React, {useEffect, useState} from 'react';
+import {Filters, INITIAL_FILTERS} from '../../App';
 import '../../styles/FormsAndModals.css';
 
 type FilterPageProps = {
@@ -38,14 +38,16 @@ function FilterPage({isOpen, onClose, isClosing, filters, setFilters}: FilterPag
             return;
         }
         setErr(null);
-        setFilters({...local, page:1});
+        setFilters({...local, page:0});
         onClose();
     };
 
     const reset = () => {
-        setLocal({});
+        const newFilters = {...INITIAL_FILTERS};
+        if (filters.categoryId != null) newFilters.categoryId = filters.categoryId;
+        setFilters(newFilters);
+        setLocal(newFilters);
         setErr(null);
-        onClose();
     }
 
     return (
