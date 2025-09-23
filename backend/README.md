@@ -1,5 +1,7 @@
 # E-commerce Backend
 
+![Java](https://img.shields.io/badge/Java-17-orange?style=for-the-badge&logo=openjdk) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-green?style=for-the-badge&logo=spring-boot) ![Maven](https://img.shields.io/badge/Build-Maven-critical?style=for-the-badge&logo=apache-maven) ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-blue?style=for-the-badge&logo=postgresql) ![Redis](https://img.shields.io/badge/Cache-Redis-red?style=for-the-badge&logo=redis) ![RabbitMQ](https://img.shields.io/badge/Messaging-RabbitMQ-orange?style=for-the-badge&logo=rabbitmq) ![Authentication](https://img.shields.io/badge/Authentication-JWT-black?style=for-the-badge&logo=JSON%20web%20tokens)
+
 This document provides a detailed overview of the E-commerce backend service, including its architecture, implementation details, and instructions for setting it up and running it on different operating systems.
 
 ## Table of Contents
@@ -15,11 +17,7 @@ This document provides a detailed overview of the E-commerce backend service, in
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
-    - [Running the Application Locally](#running-the-application-locally)
-        - [On Linux/macOS](#on-linuxmacos)
-        - [On Windows](#on-windows)
-- [Running with Docker](#running-with-docker)
-- [API Documentation](#api-documentation)
+- [Running with Docker](#running-with-docker)\
 
 ## Core Technologies
 
