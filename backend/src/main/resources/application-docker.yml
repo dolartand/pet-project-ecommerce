@@ -16,8 +16,8 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:none}
-    show-sql: ${SPRING_JPA_SHOW_SQL:false}
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+    show-sql: ${SPRING_JPA_SHOW_SQL}
     database-platform: ${SPRING_JPA_DATABASE_PLATFORM}
     properties:
       hibernate:
@@ -26,17 +26,17 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   flyway:
-    enabled: ${SPRING_FLYWAY_ENABLED:true}
+    enabled: ${SPRING_FLYWAY_ENABLED}
     locations: ${SPRING_FLYWAY_LOCATIONS:classpath:db/migration}
-    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:true}
+    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE}
     validate-on-migrate: true
 
   data:
     redis:
       host: ${SPRING_DATA_REDIS_HOST}
       port: ${SPRING_DATA_REDIS_PORT}
-      database: ${SPRING_DATA_REDIS_DATABASE:0}
-      timeout: ${SPRING_DATA_REDIS_TIMEOUT:2000ms}
+      database: ${SPRING_DATA_REDIS_DATABASE}
+      timeout: ${SPRING_DATA_REDIS_TIMEOUT}
       lettuce:
         pool:
           max-active: 8
@@ -49,7 +49,9 @@ spring:
     port: ${SPRING_RABBITMQ_PORT}
     username: ${SPRING_RABBITMQ_USERNAME}
     password: ${SPRING_RABBITMQ_PASSWORD}
-    virtual-host: ${SPRING_RABBITMQ_VIRTUAL_HOST:/}
+    virtual-host: ${SPRING_RABBITMQ_VIRTUAL_HOST}
+    publisher-confirm-type: correlated
+    publisher-returns: true
     listener:
       simple:
         retry:
@@ -62,9 +64,9 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET}
-  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}
-  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}
-  issuer: ${JWT_ISSUER:ecommerce-api}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
+  issuer: ${JWT_ISSUER}
 
 management:
   endpoints:
@@ -85,9 +87,9 @@ management:
 
 logging:
   level:
-    com.ecommerce.backend: ${LOGGING_LEVEL_COM_ECOMMERCE_BACKEND:INFO}
-    org.springframework.web: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB:INFO}
-    org.springframework.security: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY:INFO}
+    com.ecommerce.backend: ${LOGGING_LEVEL_COM_ECOMMERCE_BACKEND}
+    org.springframework.web: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB}
+    org.springframework.security: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY}
     org.hibernate.SQL: INFO
     org.hibernate.type.descriptor.sql.BasicBinder: INFO
   pattern:
