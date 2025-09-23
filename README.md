@@ -1,5 +1,11 @@
 # E-commerce Platform
 
+<div align="center">
+  <img src="frontend/public/assets/logo.png" alt="Логотип приложения"/>
+</div>
+
+[![Backend](https://img.shields.io/badge/Backend-Spring_Boot-green?style=for-the-badge&logo=spring-boot)](./backend) [![Frontend](https://img.shields.io/badge/Frontend-React-blue?style=for-the-badge&logo=react)](./frontend) [![Docker](https://img.shields.io/badge/Docker-ready-blue?style=for-the-badge&logo=docker)](./docker-compose.yml) ![License](https://img.shields.io/badge/MIT-license-blue.svg?style=for-the-badge)
+
 This is a full-stack e-commerce platform consisting of a React-based frontend and a Spring Boot backend. The entire application is containerized using Docker and can be orchestrated with Docker Compose.
 
 ## Documentation
@@ -34,18 +40,19 @@ The application is composed of several services that work together:
 
 The `docker-compose.yml` file defines the following services:
 
-*   **`frontend`**: The user-facing React application.
-*   **`backend`**: The Spring Boot application providing the core API.
-*   **`postgres`**: The PostgreSQL database for data persistence.
-*   **`redis`**: A Redis instance for caching.
-*   **`rabbitmq`**: A RabbitMQ message broker for asynchronous communication.
+-   **`frontend`**: The user-facing React application.
+-   **`backend`**: The Spring Boot application providing the core API.
+-   **`postgres`**: The PostgreSQL database for data persistence.
+-   **`redis`**: A Redis instance for caching.
+-   **`rabbitmq`**: A RabbitMQ message broker for asynchronous communication.
 
 ## Getting Started
 
 ### Prerequisites
 
-*   **Docker**: [Install Docker](https://docs.docker.com/get-docker/)
-*   **Docker Compose**: [Install Docker Compose](https://docs.docker.com/compose/install/) (usually included with Docker Desktop)
+-   **Docker**: [Install Docker](https://docs.docker.com/get-docker/)
+-   **Docker Compose**: [Install Docker Compose](https://docs.docker.com/compose/install/) (usually included with Docker Desktop)
+-   **Git**: [Install Git](https://git-scm.com/downloads)
 
 ### Running the Application
 
@@ -69,9 +76,9 @@ The `docker-compose.yml` file defines the following services:
     ```
 
 4.  **Accessing the Services:**
-    *   **Frontend Application**: [http://localhost:3000](http://localhost:3000)
-    *   **Backend API**: [http://localhost:8080](http://localhost:8080)
-    *   **RabbitMQ Management UI**: [http://localhost:15672](http://localhost:15672) (user: `admin`, pass: `password` or as set in your `.env`)
+    -   **Frontend Application**: [http://localhost:3000](http://localhost:3000)
+    -   **Backend API**: [http://localhost:8080](http://localhost:8080)
+    -   **RabbitMQ Management UI**: [http://localhost:15672](http://localhost:15672) (user: `admin`, pass: `password` or as set in your `.env`)
 
 5.  **Stopping the Application:**
     To stop all running services, use the following command:
@@ -85,7 +92,20 @@ The `docker-compose.yml` file defines the following services:
 
 ## Project Structure
 
-*   `backend/`: Contains the source code for the Spring Boot backend.
-*   `frontend/`: Contains the source code for the React frontend.
-*   `docs/`: Contains additional documentation.
-*   `docker-compose.yml`: Defines all the services for the application.
+-   `backend/`: Contains the source code for the Spring Boot backend.
+-   `frontend/`: Contains the source code for the React frontend.
+-   `docs/`: Contains additional documentation.
+-   `docker-compose.yml`: Defines all the services for the application.
+
+## Authors
+
+Artur (Backend)
+- GitHub:@dolartand
+- LinkedIn:
+- Email: dolartand@gmail.com
+
+Dasha (Frontend)
+- GitHub:@pimadasha
+- LinkedIn:
+- Email: pimadasha2006@gmail.com
+
