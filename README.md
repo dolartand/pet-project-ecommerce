@@ -6,7 +6,7 @@ This is a full-stack e-commerce platform consisting of a React-based frontend an
 
 - **[Backend Documentation](./backend/README.md)** - Detailed information about the Spring Boot backend
 - **[Frontend Documentation](./frontend/README.md)** - React frontend documentation 
-- **[API Documentation](./docs/specs.yml)** - API endpoints and usage
+- **[API Documentation](./docs/api-specs.yml)** - API endpoints and usage
 
 
 ## Architecture Overview
