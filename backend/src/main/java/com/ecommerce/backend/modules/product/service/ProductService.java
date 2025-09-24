@@ -19,6 +19,7 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,10 +40,12 @@ public class ProductService {
     public Page<ProductResponse> searchProducts(ProductSearchRequest request, Pageable pageable) {
         log.info("Searching products with request: {} and pageable: {}", request, pageable);
 
-        Pageable pageableWithSort =  PageRequest.of(
+        Sort sort = determineSortOrder(request, pageable);
+
+        Pageable pageableWithSort = PageRequest.of(
                 pageable.getPageNumber(),
                 pageable.getPageSize(),
-                pageable.getSort()
+                sort
         );
 
         Page<Product> products = productRepository.findWithFilters(
@@ -55,6 +58,21 @@ public class ProductService {
         );
 
         return products.map(this::mapToResponse);
+    }
+
+    private Sort determineSortOrder(ProductSearchRequest request, Pageable pageable) {
+        if (request.getSortBy() != null && !request.getSortBy().isEmpty()) {
+            Sort.Direction direction = Sort.Direction.ASC;
+
+            if (request.getSortOrder() != null &&
+                    request.getSortOrder().equalsIgnoreCase("desc")) {
+                direction = Sort.Direction.DESC;
+            }
+
+            return Sort.by(direction, request.getSortBy());
+        }
+
+        return pageable.getSort();
     }
 
     @Cacheable(value = CacheConfig.CACHE_PRODUCT_DETAILS, key = "#id")

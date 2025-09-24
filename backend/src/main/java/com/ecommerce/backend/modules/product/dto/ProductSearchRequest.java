@@ -48,6 +48,16 @@ public class ProductSearchRequest implements Serializable {
     }
 
     public Sort getSort() {
-        return Sort.by(sortBy, sortOrder);
+        if (sortBy == null || sortBy.isEmpty()) {
+            return Sort.unsorted(); // возвращаем "без сортировки"
+        }
+
+        Sort.Direction direction = Sort.Direction.ASC; // по умолчанию ASC
+
+        if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+            direction = Sort.Direction.DESC;
+        }
+
+        return Sort.by(direction, sortBy);
     }
 }
