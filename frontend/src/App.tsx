@@ -6,10 +6,11 @@ import ShoppingBagPage from "./pages/ShoppingBagPage";
 import MainPage from "./pages/MainPage";
 import Sidebar from "./components/layout/Sidebar";
 import FilterPage from "./components/layout/FilterPage";
+import ProfileModal from "./components/layout/ProfileModal";
 import {useAuth} from "./hooks/useAuth";
 import styles from 'styles/global.module.css';
 
-type AuthModeType = 'login' | 'signup' | 'reset' | null;
+type AuthModeType = 'login' | 'signup' | 'reset' | 'profile' | null;
 export interface Filters {
     search?: string;
     categoryId?: number;
@@ -19,26 +20,20 @@ export interface Filters {
     maxPrice?: number;
     available?: boolean;
     sortBy?: string;
-    sortDirection?: string;
+    sortOrder?: string;
 }
 export const INITIAL_FILTERS: Filters = {
     page: 0,
     size: 20,
     sortBy: "createdAt",
-    sortDirection: "desc",
+    sortOrder: "desc",
 }
-// interface Category {
-//     id: number;
-//     name: string;
-//     description?: string;
-// }
 
 function App() {
     const [authMode, setAuthMode] = useState<AuthModeType>(null);
     const {isLoggedIn} = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
     const [isClosing, setIsClosing] = useState<boolean>(false);
-    // const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
     const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
     const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
     const [isFilterClosing, setIsFilterClosing] = useState<boolean>(false);
@@ -48,6 +43,12 @@ function App() {
 
     const handleOpenLogInModal = () => {
         setAuthMode('login');
+    }
+
+    const handleOpenLoginOrProfileClick = () =>{
+        if (isLoggedIn) setAuthMode('profile');
+        else
+            setAuthMode('login');
     }
 
     useEffect(() => {
@@ -85,7 +86,6 @@ function App() {
 
     const handleCategorySelect = (categoryId: number) => {
         setFilters(prev=>({...prev, categoryId: categoryId ?? undefined, page: 0}));
-        // setSelectedCategory(categoryId);
         handleSidebarClose();
     }
 
@@ -108,12 +108,21 @@ function App() {
     return (
             <div className="App">
                 <Header onLoginClick={()=>setAuthMode('login')} onCartClick={handleCartClick}
-                        onMenuClick={handleSidebarToggle} onFilterClick={handleFilterToggle} />
+                        onMenuClick={handleSidebarToggle} onFilterClick={handleFilterToggle}
+                        isLoggedIn={isLoggedIn} onAuthClick={handleOpenLoginOrProfileClick}/>
                 <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose}
                          isClosing={isClosing} handleCategorySelected={handleCategorySelect} />
                 <FilterPage isOpen={isFilterOpen} isClosing={isFilterClosing} onClose={handleFilterClose}
                         filters={filters} setFilters={setFilters}/>
-                {authMode && (
+
+                {authMode=== 'profile' && isLoggedIn && (
+                    <div className="modal-backdrop" onClick={() => setAuthMode(null)}>
+                        <div className="page-content" onClick={e => e.stopPropagation()}>
+                            <ProfileModal handleClose={() => setAuthMode(null)}/>
+                        </div>
+                    </div>
+                )}
+                {(authMode === 'login' || authMode === 'signup' || authMode === 'reset') && !isLoggedIn && (
                     <AuthMode mode={authMode}
                               onClose={() => setAuthMode(null)}
                               onSwitchMode={()=>{

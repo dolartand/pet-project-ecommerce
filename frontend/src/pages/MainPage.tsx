@@ -30,7 +30,7 @@ function cleanParams(filters: Filters) {
     if (filters.page != null) params.page = filters.page;
     if (filters.size != null) params.size = filters.size;
     if (filters.sortBy) params.sortBy = filters.sortBy;
-    if (filters.sortDirection) params.sortDirection = filters.sortDirection;
+    if (filters.sortOrder) params.sortOrder = filters.sortOrder;
     return params;
 }
 

@@ -1,7 +1,7 @@
 // файл для  глобального состояния аутентификации - хранилище
 import React, {useContext, createContext, ReactNode, useState, useEffect} from 'react';
 import api from "../api/axios";
-import {setToken, subscribe} from "../api/tokenStore";
+import {getToken, setToken, subscribe} from "../api/tokenStore";
 
 interface User {
     id: number;
@@ -55,35 +55,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }, []);
 
     useEffect(() =>{
-        const checkAuth = async () => {
+        const checkUserSession = async () => {
             try {
-                const response = await api.post('/auth/refresh');
-                logIn(response.data);
+                const response = await api.post('/users/profile');
+                const currentUser = response.data;
+                const currentToken = getToken();
+                setIsLoggedIn(true);
+                setUser(currentUser);
+                setAccessTokenState(currentToken);
             } catch (err){
                 console.log("Пользователь не авторизован");
+                logOut();
             } finally {
                 setLoading(false);
             }
         };
-        checkAuth();
+        checkUserSession();
     }, []);
 
     const logIn = (authData: AuthData) => {
         setIsLoggedIn(true);
         setUser(authData.user);
-        setAccessTokenState(authData.accessToken);
+        // setAccessTokenState(authData.accessToken);
         setToken(authData.accessToken);
     }
 
     const logOut = () => {
         setIsLoggedIn(false);
         setUser(null);
-        setAccessTokenState(null);
+        // setAccessTokenState(null);
         setToken(null);
-        api.post('/auth/logout')
-            .then(res =>
-                console.log(res.data.message))
-            .catch(err => alert(err.message));
+        api.post('/auth/logout').catch(err => console.log(err.message));
     }
 
     const value = {isLoggedIn, user, accessToken, logIn, logOut, setAccessToken: setAccessTokenState};

@@ -100,7 +100,7 @@ function FilterPage({isOpen, onClose, isClosing, filters, setFilters}: FilterPag
                                 <option value="rating">По рейтингу</option>
                                 <option value="name">По названию</option>
                             </select>
-                            <select value={local.sortDirection ?? 'desc'} onChange={e=>change('sortDirection', e.target.value)}>
+                            <select value={local.sortOrder ?? 'desc'} onChange={e=>change('sortOrder', e.target.value)}>
                                 <option value="asc">По возрастанию</option>
                                 <option value="desc">По убыванию</option>
                             </select>

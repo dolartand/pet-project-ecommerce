@@ -3,13 +3,15 @@ import '../../styles/Header.css'
 import CurrencyDropDown from "../ui/CurrencyDropDown";
 
 type HeaderProps = {
+    isLoggedIn: boolean;
+    onAuthClick: () => void;
     onLoginClick: () => void;
     onCartClick: () => void;
     onMenuClick: () => void;
     onFilterClick: () => void;
 };
 
-function Header({onLoginClick, onCartClick, onMenuClick, onFilterClick}: HeaderProps) {
+function Header({onLoginClick, onCartClick, onMenuClick, onFilterClick,isLoggedIn, onAuthClick}: HeaderProps) {
 
     return (
         <header className="navigation-block">
@@ -39,9 +41,9 @@ function Header({onLoginClick, onCartClick, onMenuClick, onFilterClick}: HeaderP
                     </div>
                     <div className='header-navbar hide-mobile'>
                         <ul>
-                            <li className='simple-menu' onClick={onLoginClick}>
+                            <li className='simple-menu' onClick={onAuthClick}>
                                 <img src="https://img.icons8.com/ios-glyphs/40/FFFFFF/user-male-circle.png" loading="lazy"/>
-                                <p>Войти</p></li>
+                                <p>{isLoggedIn ? "Профиль" : "Войти"}</p></li>
                             <li className='simple-menu'>
                                 <img src="https://img.icons8.com/ios-glyphs/40/FFFFFF/like.png" loading="lazy"/>
                                 <p>Избранное</p></li>
