@@ -57,7 +57,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     useEffect(() =>{
         const checkUserSession = async () => {
             try {
-                const response = await api.post('/users/profile');
+                const response = await api.get('/users/profile');
                 const currentUser = response.data;
                 const currentToken = getToken();
                 setIsLoggedIn(true);
