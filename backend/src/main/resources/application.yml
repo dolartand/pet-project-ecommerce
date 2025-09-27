@@ -17,5 +17,9 @@ jwt:
   refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}
   issuer: ${JWT_ISSUER:ecommerce-api}
 
+app:
+  cookie:
+    secure: true
+
 server:
   port: ${SERVER_PORT:8080}

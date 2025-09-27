@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -23,6 +24,9 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+
+    @Value("${app.cookie.secure}")
+    private boolean isCookieSecure;
 
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@Valid @RequestBody RegisterRequest request) {
@@ -57,7 +61,7 @@ public class AuthController {
         AuthResponseWrapper<RefreshTokenResponse> wrapper = authService.refreshToken(refreshToken);
         ResponseCookie cookie = ResponseCookie.from("refreshToken", wrapper.getRefreshToken())
                 .httpOnly(true)
-                .secure(true)
+                .secure(isCookieSecure)
                 .path("/")
                 .maxAge(60 * 60 * 24 * 7)
                 .build();
