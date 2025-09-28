@@ -28,7 +28,7 @@ function ProfileModal({handleClose}: ProfileModalProps) {
             .catch(error =>{
                 console.log('Ошибка получения профиля ', error);
                 if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-                    logOut();
+                    logOut().catch(console.error);
                 } else {
                     setError({ form: 'Не удалось загрузить профиль. Попробуйте позже.'});
                 }
@@ -69,7 +69,7 @@ function ProfileModal({handleClose}: ProfileModalProps) {
 
     const handleLogOut = async () => {
         try {
-            logOut();
+            await logOut();
             setUnauthorized(true);
         }catch(e){ setError({form:'Не удалось выйти из профиля. Попробуйте позже'})}
     }
@@ -79,14 +79,17 @@ function ProfileModal({handleClose}: ProfileModalProps) {
             <button type='button' aria-label='Закрыть форму' className="onClose" onClick={handleClose}>✕</button>
             <h3>Профиль</h3>
             {error.form && (<div className='error-msg'>{error.form}</div>)}
-            <label htmlFor="firstName" className='formLabel' aria-readonly={readOnly}>Имя</label>
-            <input type="text" id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            <label htmlFor="firstName" className='formLabel'>Имя</label>
+            <input type="text" id="firstName" value={firstName} aria-readonly={readOnly} readOnly={readOnly}
+                   onChange={(e) => setFirstName(e.target.value)} />
             {error.firstName && (<div className='error-msg'>{error.firstName}</div>)}
-            <label htmlFor="lastName" className='formLabel' aria-readonly={readOnly}>Фамилия</label>
-            <input type="text" id='lastName' value={lastName} onChange={(e) => setLastName(e.target.value)} />
+            <label htmlFor="lastName" className='formLabel'>Фамилия</label>
+            <input type="text" id='lastName' value={lastName} aria-readonly={readOnly} readOnly={readOnly}
+                   onChange={(e) => setLastName(e.target.value)} />
             {error.lastName && (<div className='error-msg'>{error.lastName}</div>)}
-            <label htmlFor="email" className='formLabel' aria-readonly={readOnly}>Почта</label>
-            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)}/>
+            <label htmlFor="email" className='formLabel'>Почта</label>
+            <input type="email" id="email" value={email} aria-readonly={readOnly} readOnly={readOnly}
+                   onChange={(e) => setEmail(e.target.value)}/>
             {error.email && (<div className='error-msg'>{error.email}</div>)}
             <button type='button' className='edit-btn' onClick={handleEditProfile}>{editBtnLabel}</button>
             <button type='button' className='submit-btn' onClick={handleLogOut}>Выйти из аккаунта</button>

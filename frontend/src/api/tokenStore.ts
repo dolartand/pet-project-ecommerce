@@ -17,3 +17,7 @@ export const subscribe = (callback: (token: string | null) => void) => {
         subscribers = subscribers.filter(cb => cb !== callback);
     };
 }
+// Функция для  уведомления AuthContext об обновлении токенам через refresh
+export const notifyTokenRefresh = (token: string) => {
+    setToken(token);
+}

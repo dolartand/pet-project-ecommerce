@@ -85,7 +85,7 @@ input{
     align-self: flex-start;
     width: 89%;
 }
-.submit-btn{
+.submit-btn, .edit-btn{
     border-radius: 0.7em;
     border: thin solid lightblue;
     font-size: 1em;
@@ -97,7 +97,8 @@ input{
     transition: transform 0.5s ease;
     width: 95%;
 }
-.submit-btn:hover{
+.submit-btn:hover,
+.edit-btn:hover{
     transform: scale(1.02);
 }
 .checkbox-label{

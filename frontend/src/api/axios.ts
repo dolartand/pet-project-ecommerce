@@ -1,5 +1,5 @@
 import axios from "axios";
-import {getToken, setToken} from "./tokenStore";
+import {getToken, setToken, notifyTokenRefresh} from "./tokenStore";
 
 const api = axios.create({
     baseURL: process.env.REACT_APP_API_URL,
@@ -30,7 +30,8 @@ api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
-        if (error.response.status === 401 && !originalRequest._retry) {
+        const publicEndpoints = ['/auth/login', '/auth/register', '/auth/refresh'];
+        if (error.response.status === 401 && !originalRequest._retry && !publicEndpoints.includes(originalRequest.url)) {
             // если запрос уже 1 отправлен, остальные ставим в очередь
             if (isRefreshing) {
                 return new Promise(function (resolve, reject) {
@@ -45,13 +46,15 @@ api.interceptors.response.use(
             try{
                 const response = await api.post('/auth/refresh');
                 const { accessToken } = response.data;
-                setToken(accessToken);
+                // Используем notifyTokenRefresh для уведомления всех подписчиков
+                notifyTokenRefresh(accessToken);
                 originalRequest.headers.Authorization = `Bearer ${accessToken}`;
                 processQueue(null, accessToken);
                 return api(originalRequest);
             }catch(refreshError) {
+                // Если refresh не удался, очищаем токен и уведомляем подписчиков
                 setToken(null);
-                processQueue(refreshError,null);
+                processQueue(refreshError, null);
                 return Promise.reject(refreshError);
             }finally {
                 isRefreshing = false;
