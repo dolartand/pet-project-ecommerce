@@ -9,6 +9,7 @@ import FilterPage from "./components/layout/FilterPage";
 import ProfileModal from "./components/layout/ProfileModal";
 import {useAuth} from "./hooks/useAuth";
 import styles from 'styles/global.module.css';
+import ProductPage from "./pages/ProductPage";
 
 type AuthModeType = 'login' | 'signup' | 'reset' | 'profile' | null;
 export interface Filters {
@@ -37,6 +38,7 @@ function App() {
     const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
     const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
     const [isFilterClosing, setIsFilterClosing] = useState<boolean>(false);
+    const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
     const navigate = useNavigate();
 
     const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
@@ -105,6 +107,9 @@ function App() {
     }
     const handleFilterClose = () => {setIsFilterClosing(true);}
 
+    const handleProductSelect = (productId: number) => {setSelectedProductId(productId);}
+    const handleProductClose = () => {setSelectedProductId(null);}
+
     return (
             <div className="App">
                 <Header onLoginClick={()=>setAuthMode('login')} onCartClick={handleCartClick}
@@ -132,10 +137,15 @@ function App() {
                               onBackToLogIn={()=>setAuthMode('login')}/>
                 )}
                 <main>
-                    {isCartOpen ? (
-                        <ShoppingBagPage/>
-                    ):(
-                        <MainPage filters={filters} handleOpenLoginModal={handleOpenLogInModal}/>
+                    {selectedProductId !== null ? (
+                        <ProductPage productId={selectedProductId} onClose={handleProductClose} />)
+                    : isCartOpen ? (<ShoppingBagPage/>)
+                        : (
+                        <MainPage
+                            filters={filters}
+                            handleOpenLoginModal={handleOpenLogInModal}
+                            onProductSelect={handleProductSelect}
+                        />
                     )}
                 </main>
             </div>

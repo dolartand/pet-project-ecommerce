@@ -10,7 +10,6 @@ type ProfileModalProps = {
 function ProfileModal({handleClose}: ProfileModalProps) {
     const [firstName, setFirstName] = useState<string>('');
     const [lastName,  setLastName]  = useState<string>('');
-    const [email, setEmail] = useState<string>('');
     const [error, setError] = useState<any>({});
     const [readOnly, setReadOnly] = useState<boolean>(true);
     const [editBtnLabel, setEditBtnLabel] = useState<string>('Редактировать');
@@ -22,7 +21,6 @@ function ProfileModal({handleClose}: ProfileModalProps) {
             .then(res=>{
                 setFirstName(res.data.firstName);
                 setLastName(res.data.lastName);
-                setEmail(res.data.email);
                 setError({});
             })
             .catch(error =>{
@@ -37,14 +35,6 @@ function ProfileModal({handleClose}: ProfileModalProps) {
 
     const validate = (): boolean => {
         const newError: any = {};
-        if(!email.trim())
-            newError.email = 'Пожалуйста, введите email';
-        else{
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailPattern.test(email)){
-                newError.email ='Некорректный формат email';
-            }
-        }
         if (!firstName.trim())  newError.firstName = 'Введите имя';
         if (!lastName.trim())   newError.lastName = 'Введите фамилию';
         setError(newError);
@@ -59,7 +49,7 @@ function ProfileModal({handleClose}: ProfileModalProps) {
         } else{
             if(!validate()) return;
             try{
-                await api.put('/users/profile',{firstName, lastName, email});
+                await api.put('/users/profile',{firstName, lastName});
                 setReadOnly(true);
                 setEditBtnLabel('Редактировать');
                 setError({});
@@ -87,10 +77,6 @@ function ProfileModal({handleClose}: ProfileModalProps) {
             <input type="text" id='lastName' value={lastName} aria-readonly={readOnly} readOnly={readOnly}
                    onChange={(e) => setLastName(e.target.value)} />
             {error.lastName && (<div className='error-msg'>{error.lastName}</div>)}
-            <label htmlFor="email" className='formLabel'>Почта</label>
-            <input type="email" id="email" value={email} aria-readonly={readOnly} readOnly={readOnly}
-                   onChange={(e) => setEmail(e.target.value)}/>
-            {error.email && (<div className='error-msg'>{error.email}</div>)}
             <button type='button' className='edit-btn' onClick={handleEditProfile}>{editBtnLabel}</button>
             <button type='button' className='submit-btn' onClick={handleLogOut}>Выйти из аккаунта</button>
         </div>

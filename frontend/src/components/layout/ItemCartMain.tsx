@@ -17,9 +17,10 @@ interface Product {
 type ItemCartMainProps = {
     item: Product;
     onLogInRequired: () => void;
+    onProductClick: () => void;
 }
 
-function ItemCartMain({item, onLogInRequired}: ItemCartMainProps) {
+function ItemCartMain({item, onLogInRequired, onProductClick}: ItemCartMainProps) {
     const {isLoggedIn} = useAuth();
     const [error, setError] = useState<string>('');
 
@@ -38,10 +39,10 @@ function ItemCartMain({item, onLogInRequired}: ItemCartMainProps) {
     }
 
     return (
-        <div className='item-container'>
+        <div className='item-container' onClick={onProductClick}>
             <img src={item.imageUrl} alt="фото"/>
             <div className='item-content'>
-                <p className='item-price'>{item.price}</p>
+                <p className='item-price'>{item.price} BYN</p>
                 <p><span>{item.name}</span><span className='item-description'>  / {item.description}</span></p>
                 <div className='item-review'>
                     <p className='rating'>⭐{item.rating}</p>

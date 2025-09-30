@@ -18,6 +18,7 @@ interface Product {
 type MainPageProps = {
     filters: Filters;
     handleOpenLoginModal: () => void;
+    onProductSelect: (product: number) => void;
 }
 
 function cleanParams(filters: Filters) {
@@ -34,7 +35,7 @@ function cleanParams(filters: Filters) {
     return params;
 }
 
-function MainPage ({handleOpenLoginModal, filters}: MainPageProps) {
+function MainPage ({handleOpenLoginModal, filters, onProductSelect}: MainPageProps) {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
@@ -43,10 +44,8 @@ function MainPage ({handleOpenLoginModal, filters}: MainPageProps) {
         setLoading(true);
         let url = '/products';
         const params: any = cleanParams(filters);
-        console.log(params);
         api.get(url, {params})
             .then(res => {
-                console.log('Ответ backend:', res.data);
                 if (isMounted) {
                     const productsData = res.data.content;
                     if (Array.isArray(productsData)) {
@@ -71,14 +70,15 @@ function MainPage ({handleOpenLoginModal, filters}: MainPageProps) {
         return () => {isMounted = false;};
     },[filters])
 
-    if (loading)    return <div>Загрузка...</div>
+    if (loading)    return <div>Loading...</div>
     if (error)    return <div className='error-msg'>{error}</div>;
     if (products.length === 0) return <div>Товаров нет</div>;
 
     return (
         <div className='main-page'>
             {products.map((product: Product) => (
-                <ItemCartMain item={product} key={product.id} onLogInRequired={handleOpenLoginModal} />
+                <ItemCartMain item={product} key={product.id}
+                              onLogInRequired={handleOpenLoginModal} onProductClick={()=> onProductSelect(product.id)}/>
             ))}
         </div>
     );

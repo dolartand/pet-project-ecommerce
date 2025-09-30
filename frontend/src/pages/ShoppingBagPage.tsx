@@ -58,7 +58,7 @@ function ShoppingBagPage() {
     const areAllSelected = goods.length > 0 && selectedItems.length === goods.length;
 
     if (!isLoggedIn)    return <Navigate to="/" replace />
-    if (loading)    return <div>Загрузка...</div>
+    if (loading)    return <div>Loading...</div>
     if (error)    return <div className='error-msg'>{error}</div>;
     if (goods.length === 0) return <div>Ваша корзина пуста</div>;
 
