@@ -1,0 +1,129 @@
+@mixin flex-direction ($direction: column) {
+  display: flex;
+  flex-direction: $direction;
+}
+@mixin btn-design {
+  display: block;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  margin: 0 0.3em 0.5em 0.3em;
+  padding: 0.3em;
+  border-radius: 1em;
+  border: none;
+  background-color: #0BA5BE;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.product-container {
+  @include flex-direction;
+  margin: auto;
+  padding: 1em;
+  gap: 1.5em;
+}
+
+.onClose {
+  font-size: 1.5em;
+  font-weight: bold;
+  background: none;
+  border: none;
+  cursor: pointer;
+  align-self: flex-start;
+  margin-bottom: 1em;
+}
+
+.product-info {
+  @include flex-direction (row);
+  gap: 1.5em;
+
+  .img {
+    max-width: 100%;
+    flex-basis: 40%;
+    border-radius: 1.2em;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .product-mainInfo {
+    @include flex-direction;
+    flex-basis: 40%;
+    gap: 1em;
+
+    h3 {
+      font-size: 1.5em;
+      margin: 0;
+      text-align: center;
+    }
+
+    p {
+      font-size: 1em;
+      color: darkgray;
+      margin-left:0.5em;
+    }
+
+    input {
+      padding: 1.1em;
+      border: 0.1em solid #ccc;
+      border-radius: 0.7em;
+      font-size: 0.9em;
+      max-width: 30em;
+      box-sizing: border-box;
+    }
+
+    .leave-review {
+      @include btn-design;
+      font-size: 1em;
+      padding: 1em;
+      margin: 0 0 0 0.3em;
+      max-width: 25em;
+      box-sizing: border-box;
+    }
+  }
+
+  .price-info {
+    @include flex-direction;
+    flex-basis: 20%;
+    padding: 1.5em;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    gap: 1em;
+
+    .product-price {
+      text-align: center;
+      color: maroon;
+      font-size: 2em;
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .add-to-cart {
+      @include btn-design;
+      font-size: 1.1em;
+    }
+  }
+}
+
+.reviews {
+  @include flex-direction (row);
+  gap: 1em;
+  margin-top: 1em;
+  padding-top: 1em;
+
+  .review {
+    @include flex-direction;
+    padding: 1em;
+    background-color: #f9f9f9;
+    border-radius: 1em;
+    gap: 0.5em;
+
+    .rating {
+      @include flex-direction(row);
+      gap: 0.75em;
+      align-items: center;
+      font-weight: 500;
+    }
+  }
+}

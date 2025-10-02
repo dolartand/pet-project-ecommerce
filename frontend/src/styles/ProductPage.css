@@ -1,0 +1,135 @@
+.product-container {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  padding: 1em;
+  gap: 1.5em;
+}
+
+.onClose {
+  font-size: 1.5em;
+  font-weight: bold;
+  background: none;
+  border: none;
+  cursor: pointer;
+  align-self: flex-start;
+  margin-bottom: 1em;
+}
+
+.product-info {
+  display: flex;
+  flex-direction: row;
+  gap: 1.5em;
+}
+.product-info .img {
+  max-width: 100%;
+  flex-basis: 40%;
+  border-radius: 1.2em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.product-info .product-mainInfo {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 40%;
+  gap: 1em;
+}
+.product-info .product-mainInfo h3 {
+  font-size: 1.5em;
+  margin: 0;
+  text-align: center;
+}
+.product-info .product-mainInfo p {
+  font-size: 1em;
+  color: darkgray;
+  margin-left: 0.5em;
+}
+.product-info .product-mainInfo input {
+  padding: 1.1em;
+  border: 0.1em solid #ccc;
+  border-radius: 0.7em;
+  font-size: 0.9em;
+  max-width: 30em;
+  box-sizing: border-box;
+}
+.product-info .product-mainInfo .leave-review {
+  display: block;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  margin: 0 0.3em 0.5em 0.3em;
+  padding: 0.3em;
+  border-radius: 1em;
+  border: none;
+  background-color: #0BA5BE;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+.product-info .product-mainInfo .leave-review:hover {
+  opacity: 0.8;
+}
+.product-info .product-mainInfo .leave-review {
+  font-size: 1em;
+  padding: 1em;
+  margin: 0 0 0 0.3em;
+  max-width: 25em;
+  box-sizing: border-box;
+}
+.product-info .price-info {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 20%;
+  padding: 1.5em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  gap: 1em;
+}
+.product-info .price-info .product-price {
+  text-align: center;
+  color: maroon;
+  font-size: 2em;
+  font-weight: 500;
+  margin: 0;
+}
+.product-info .price-info .add-to-cart {
+  display: block;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  margin: 0 0.3em 0.5em 0.3em;
+  padding: 0.3em;
+  border-radius: 1em;
+  border: none;
+  background-color: #0BA5BE;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+.product-info .price-info .add-to-cart:hover {
+  opacity: 0.8;
+}
+.product-info .price-info .add-to-cart {
+  font-size: 1.1em;
+}
+
+.reviews {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+  margin-top: 1em;
+  padding-top: 1em;
+}
+.reviews .review {
+  display: flex;
+  flex-direction: column;
+  padding: 1em;
+  background-color: #f9f9f9;
+  border-radius: 1em;
+  gap: 0.5em;
+}
+.reviews .review .rating {
+  display: flex;
+  flex-direction: row;
+  gap: 0.75em;
+  align-items: center;
+  font-weight: 500;
+}
+
+/*# sourceMappingURL=ProductPage.css.map */

@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 import api from "../api/axios";
 import {useAuth} from "../hooks/useAuth";
+import '../styles/ProductPage.css';
 
 type ProductPageProps = {
     productId:number;
@@ -93,17 +94,17 @@ function ProductPage({productId, onClose}: ProductPageProps) {
                     <button className='add-to-cart'>Добавить в корзину</button>
                     {!product?.available && (<p>Товар пока отсутствует</p>)}
                 </div>
-                <div className='reviews'>
-                    {getReviews.map((review: ProductReview) => (
-                        <div className='review' key={review.id}>
-                            <div className='rating'>
-                                <p>{review.rating}</p>
-                                <p>{review.userName}</p>
-                            </div>
-                            <p>{review.comment}</p>
+            </div>
+            <div className='reviews'>
+                {getReviews.map((review: ProductReview) => (
+                    <div className='review' key={review.id}>
+                        <div className='rating'>
+                            <p>⭐{review.rating}</p>
+                            <p>{review.userName}</p>
                         </div>
-                    ))}
-                </div>
+                        <p>{review.comment}</p>
+                    </div>
+                ))}
             </div>
         </div>
     )
