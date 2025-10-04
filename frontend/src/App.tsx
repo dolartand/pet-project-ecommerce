@@ -112,8 +112,7 @@ function App() {
 
     return (
             <div className="App">
-                <Header onLoginClick={()=>setAuthMode('login')} onCartClick={handleCartClick}
-                        onMenuClick={handleSidebarToggle} onFilterClick={handleFilterToggle}
+                <Header onCartClick={handleCartClick} onMenuClick={handleSidebarToggle} onFilterClick={handleFilterToggle}
                         isLoggedIn={isLoggedIn} onAuthClick={handleOpenLoginOrProfileClick}/>
                 <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose}
                          isClosing={isClosing} handleCategorySelected={handleCategorySelect} />

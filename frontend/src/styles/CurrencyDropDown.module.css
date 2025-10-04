@@ -1,6 +1,7 @@
 .dropdown{
     position: relative;
     display: block;
+    margin: 0.5em;
 }
 .toggle{
     display: flex;

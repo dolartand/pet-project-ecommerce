@@ -1,19 +1,18 @@
 import React, {useState, useRef, useEffect} from "react";
 import styles from '../../styles/CurrencyDropDown.module.css'
 
-interface Currency {
-    currency: string;
+interface Languages {
+    language: string;
     code: string;
 }
-const currencies: Currency[] = [
-    {currency: 'Белорусский рубль', code: 'BYN'},
-    {currency: 'Российский рубль', code: 'RUB'},
-    {currency: 'Казахстанский тенге', code: 'KZT'},
-    {currency: 'Армянский драм', code: 'AMD'},
+const languages: Languages[] = [
+    {language: 'Русский', code: 'RU'},
+    {language: 'English', code: 'ENG'},
+    {language: 'Spanish', code: 'ESP'},
 ];
 
-const CurrencyDropDown: React.FC = () => {
-    const [selected, setSelected] = useState<Currency>(currencies[0]);
+const LanguageDropDown: React.FC = () => {
+    const [selected, setSelected] = useState<Languages>(languages[0]);
     const [open, setOpen] = useState<boolean>(false);
     const ref = useRef<HTMLDivElement>(null);
 
@@ -32,16 +31,16 @@ const CurrencyDropDown: React.FC = () => {
                 <span>{selected.code}</span>
             </button>
             <ul className={`${styles.menu} ${open ? styles.menuOpen : ''}`}>
-                {currencies.map(currency => (
-                    <li key={currency.code} className={styles.item}>
+                {languages.map(language => (
+                    <li key={language.code} className={styles.item}>
                         <button
                             className={styles.itemBtn}
                             onClick={() => {
-                                setSelected(currency);
+                                setSelected(language);
                                 setOpen(false);
                             }}
                         >
-                            {currency.currency}
+                            {language.language}
                         </button>
                     </li>
                 ))}
@@ -49,4 +48,4 @@ const CurrencyDropDown: React.FC = () => {
         </div>
     )
 }
-export default CurrencyDropDown;
+export default LanguageDropDown;

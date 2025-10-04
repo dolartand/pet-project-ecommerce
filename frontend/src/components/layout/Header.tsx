@@ -1,17 +1,16 @@
 import React from "react";
 import '../../styles/Header.css'
-import CurrencyDropDown from "../ui/CurrencyDropDown";
+import LanguageDropDown from "../ui/LanguageDropDown";
 
 type HeaderProps = {
     isLoggedIn: boolean;
     onAuthClick: () => void;
-    onLoginClick: () => void;
     onCartClick: () => void;
     onMenuClick: () => void;
     onFilterClick: () => void;
 };
 
-function Header({onLoginClick, onCartClick, onMenuClick, onFilterClick,isLoggedIn, onAuthClick}: HeaderProps) {
+function Header({onCartClick, onMenuClick, onFilterClick,isLoggedIn, onAuthClick}: HeaderProps) {
 
     return (
         <header className="navigation-block">
@@ -19,7 +18,7 @@ function Header({onLoginClick, onCartClick, onMenuClick, onFilterClick,isLoggedI
                 <div className='navigation-top hide-mobile hide-laptop'>
                     <ul className='simple-menu'>
                         <li className='simple-menu-item money'>
-                            <CurrencyDropDown />
+                            <LanguageDropDown />
                         </li>
                         <li className='simple-menu-item collection-point'>Пункты выдачи</li>
                         <li className='simple-menu-item help'>Помощь</li>
@@ -44,9 +43,6 @@ function Header({onLoginClick, onCartClick, onMenuClick, onFilterClick,isLoggedI
                             <li className='simple-menu' onClick={onAuthClick}>
                                 <img src="https://img.icons8.com/ios-glyphs/40/FFFFFF/user-male-circle.png" loading="lazy"/>
                                 <p>{isLoggedIn ? "Профиль" : "Войти"}</p></li>
-                            <li className='simple-menu'>
-                                <img src="https://img.icons8.com/ios-glyphs/40/FFFFFF/like.png" loading="lazy"/>
-                                <p>Избранное</p></li>
                             <li className='simple-menu' onClick={onCartClick}>
                                 <img src="https://img.icons8.com/?size=40&id=9671&format=png&color=FFFFFF" loading="lazy"/>
                                 <p>Корзина</p></li>
