@@ -101,11 +101,9 @@ The `docker-compose.yml` file defines the following services:
 
 Artur (Backend)
 - GitHub:@dolartand
-- LinkedIn:
 - Email: dolartand@gmail.com
 
 Dasha (Frontend)
 - GitHub:@pimadasha
-- LinkedIn:
 - Email: pimadasha2006@gmail.com
 
