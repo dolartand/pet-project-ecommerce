@@ -1,5 +1,5 @@
 import axios from "axios";
-import {getToken, setToken, notifyTokenRefresh} from "./tokenStore";
+import {getToken, setToken, notifyTokenRefresh, hasSession} from "./tokenStore";
 
 const api = axios.create({
     baseURL: process.env.REACT_APP_API_URL,
@@ -32,6 +32,10 @@ api.interceptors.response.use(
         const originalRequest = error.config;
         const publicEndpoints = ['/auth/login', '/auth/register', '/auth/refresh'];
         if (error.response.status === 401 && !originalRequest._retry && !publicEndpoints.includes(originalRequest.url)) {
+            // Если не знаем про серверную сессию (куки очищены), не пытаемся рефрешить
+            if (!hasSession()) {
+                return Promise.reject(error);
+            }
             // если запрос уже 1 отправлен, остальные ставим в очередь
             if (isRefreshing) {
                 return new Promise(function (resolve, reject) {

@@ -1,7 +1,7 @@
 // файл для  глобального состояния аутентификации - хранилище
-import React, {useContext, createContext, ReactNode, useState, useEffect} from 'react';
+import React, {createContext, ReactNode, useState, useEffect} from 'react';
 import api from "../api/axios";
-import {getToken, setToken, subscribe} from "../api/tokenStore";
+import {getToken, setToken, subscribe, markSessionPresent, clearSessionFlag, hasSession} from "../api/tokenStore";
 
 interface User {
     id: number;
@@ -79,7 +79,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
                         console.log("Токен истек, пытаемся обновить...");
                     }
                 }
-                // Если токена нет или он недействителен, пытаемся refresh
+                // Если ранее не было сессии — не происходит refresh
+                if (!hasSession()) {
+                    throw new Error('No session');
+                }
+                // Иначе пытаемся refresh
                 const refreshResponse = await api.post('/auth/refresh');
                 const { accessToken } = refreshResponse.data;
                 setToken(accessToken);
@@ -92,9 +96,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 setUser(currentUser);
                 setAccessTokenState(accessToken);
             } catch (err){
-                console.log("Пользователь не авторизован или сессия истекла");
-                // Очищаем состояние только если refresh тоже не удался
-                logOut();
+                // Нет refresh cookie или refresh не удался —  неавторизованно без вызова logout
+                setIsLoggedIn(false);
+                setUser(null);
+                setToken(null);
             } finally {
                 setLoading(false);
             }
@@ -105,8 +110,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const logIn = (authData: AuthData) => {
         setIsLoggedIn(true);
         setUser(authData.user);
-        // setAccessTokenState(authData.accessToken);
         setToken(authData.accessToken);
+        // Помечаем, что сессия создана (сервер поставил refresh cookie)
+        markSessionPresent();
     }
 
     const logOut = async () => {
@@ -115,15 +121,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
         } catch (err) {
             console.log('Logout request failed:', err);
         } finally {
-            // Очищаем состояние только после запроса (или если он не удался)
+            // Очищаем состояние  после запроса (или если он не удался)
             setIsLoggedIn(false);
             setUser(null);
             setToken(null);
+            clearSessionFlag();
         }
     }
 
     const value = {isLoggedIn, user, accessToken, logIn, logOut, setAccessToken: setAccessTokenState};
-    if (loading) {return <div>Загрузка...</div>}
+    if (loading) {return <div>Loading...</div>}
     return (
         <AuthContext.Provider value={value}>
             {children}

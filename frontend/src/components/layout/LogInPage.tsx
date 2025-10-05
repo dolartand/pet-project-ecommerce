@@ -41,7 +41,7 @@ function LogInPage ({onShowResetPage, onLogInSuccess}: LogInPageProps)  {
         e.preventDefault();
        if (!validate()) return;
        try{
-            const response = await api.post('auth/login', {email, password});
+           const response = await api.post('/auth/login', {email, password});
            clearAllFields();
            logIn(response.data);
            onLogInSuccess();

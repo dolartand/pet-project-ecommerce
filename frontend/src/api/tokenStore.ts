@@ -21,3 +21,18 @@ export const subscribe = (callback: (token: string | null) => void) => {
 export const notifyTokenRefresh = (token: string) => {
     setToken(token);
 }
+
+// ПОказатель, что у пользователя есть refresh cookie
+const SESSION_FLAG_KEY = 'hasSession';
+
+export const markSessionPresent = () => {
+    try { localStorage.setItem(SESSION_FLAG_KEY, 'true'); } catch {}
+}
+
+export const clearSessionFlag = () => {
+    try { localStorage.removeItem(SESSION_FLAG_KEY); } catch {}
+}
+
+export const hasSession = (): boolean => {
+    try { return localStorage.getItem(SESSION_FLAG_KEY) === 'true'; } catch { return false; }
+}
