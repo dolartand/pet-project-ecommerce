@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {ChangeEvent, useEffect, useState} from "react";
 import api from "../api/axios";
 import {useAuth} from "../hooks/useAuth";
 import '../styles/ProductPage.css';
@@ -31,7 +31,10 @@ function ProductPage({productId, onClose}: ProductPageProps) {
     const {isLoggedIn} = useAuth();
     const [product, setProduct] = useState<Product>();
     const [getReviews, setGetReviews] = useState<ProductReview[]>([]);
-    const [postReview, setPostReviews] = useState<ProductReview | null>(null);
+    const [postReview, setPostReview] = useState({
+        comment: '',
+        rating: 0
+    });
     const [review, setReview] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<any>({});
@@ -63,17 +66,47 @@ function ProductPage({productId, onClose}: ProductPageProps) {
             .finally(() => setLoading(false));
     }, [productId]);
 
-    const handlePostReviews = () => {
+    const handlePostReviews = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
         if(isLoggedIn){
-            if(postReview){
-                api.post('/products/{productId}/reviews', {rating:postReview.rating, comment: postReview.comment})
-                    .catch(err => {
-                        console.log(err);
-                        setError({postReviewErr:err.message});
-                    });
+            if(!postReview.comment.trim() || !postReview.rating){
+                alert('Пожалуйста, заполните отзыв и выставьте рейтинг.');
+                return;
             }
+            if(postReview.rating < 0 || postReview.rating > 5){
+                alert('Пожалуйста, выставьте корректный рейтинг.');
+                return;
+            }
+            api.post(`/products/${productId}/reviews`, {rating:postReview.rating, comment: postReview.comment})
+                .then(res => {
+                    console.log('Ответ сервера:', res.data);
+                    const newReview = res.data;
+                    setGetReviews(prevReviews => [newReview, ...prevReviews]);
+                    setPostReview({comment: '', rating: 0});
+                })
+                .catch(err => {
+                    console.log(err);
+                    setError({postReviewErr:err.message});
+                });
         } else  alert('Необходима регистрация');
     }
+
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        if (name === 'comment') {
+            setPostReview(prevState => ({...prevState, [name]: value}));
+        }
+        if (name === 'rating') {
+            if (value === '') {
+                setPostReview(prevState => ({...prevState, rating: 0}));
+                return;
+            }
+            const numValue = parseInt(value, 10);
+            if (!isNaN(numValue) && numValue >= 0 && numValue <= 5) {
+                setPostReview(prevState => ({ ...prevState, rating: numValue }));
+            }
+        }
+    };
 
     if (loading)    return <div>Loading...</div>
     return (
@@ -84,9 +117,11 @@ function ProductPage({productId, onClose}: ProductPageProps) {
                 <div className='product-mainInfo'>
                     <h3>{product?.name}</h3>
                     <p>{product?.description}</p>
-                    <input type="text" placeholder='Оставить отзыв'/>
-                    <input type='number' placeholder='рейтинг'/>
-                    <button className='leave-review' onClick={handlePostReviews}>Отправить</button>
+                    <input type="text" placeholder='Оставить отзыв'
+                           name="comment" value={postReview.comment} onChange={handleInputChange}/>
+                    <input type='number' placeholder='рейтинг'
+                           name="rating" value={postReview.rating} onChange={handleInputChange}/>
+                    <button type='button' className='leave-review' onClick={handlePostReviews}>Отправить</button>
                     {error.postReviewErr && (<div className='error-msg'>{error.postReviewErr}</div>)}
                 </div>
                 <div className='price-info'>
