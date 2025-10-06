@@ -22,16 +22,13 @@ function ShoppingBagPage() {
     const [selectedItems, setSelectedItems] = useState<number[]>([]); // по умолчанию весь массив выбран
     const {isLoggedIn} = useAuth();
 
-    useEffect(() => { // чтобы при изменении корзины, все выделялось по дефолту
-        const allItemsId = goods.map((item) => item.id);
-        setSelectedItems(allItemsId);
-    },[goods]);
     useEffect(() => {
         setLoading(true);
         api.get('/cart')
             .then(res =>{
-                setGoods(res.data);
-                const allItems = res.data.map((item: Product) => item.id);
+                console.log(res.data.items);
+                setGoods(res.data.items);
+                const allItems = res.data.items.map((item: Product) => item.id);
                 setSelectedItems(allItems);
                 setError(null)
             })
@@ -40,7 +37,12 @@ function ShoppingBagPage() {
                 setError('Не удалось загрузить корзину. Попробуйте позже.')
             })
             .finally(() => setLoading(false));
-        }, []);
+    }, []);
+
+    useEffect(() => { // чтобы при изменении корзины, все выделялось по дефолту
+        const allItemsId = goods.map((item) => item.id);
+        setSelectedItems(allItemsId);
+    },[goods]);
 
     const handleItemSelection = (itemId: number) => {
         setSelectedItems(prevSelected => {

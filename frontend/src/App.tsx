@@ -92,9 +92,10 @@ function App() {
     }
 
     const handleCartClick = () => {
-        if (isLoggedIn)
-            // setTimeout(()=> navigate('/cart'), 0);
+        if (isLoggedIn) {
+            setSelectedProductId(null);
             setIsCartOpen(true);
+        }
         else handleOpenLogInModal();
     }
 

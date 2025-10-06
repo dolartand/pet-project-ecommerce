@@ -24,7 +24,8 @@ function ItemCartMain({item, onLogInRequired, onProductClick}: ItemCartMainProps
     const {isLoggedIn} = useAuth();
     const [error, setError] = useState<string>('');
 
-    const handleAddToCart = () => {
+    const handleAddToCart = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.stopPropagation();
         if (isLoggedIn) {
             api.post('/cart/items', {productId: item.id,quantity: 1})
             .then(res => {
