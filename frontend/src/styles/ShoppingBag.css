@@ -10,50 +10,36 @@
 }
 .input-container{
     display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-}
-.round{
-    position: relative;
-    margin: 0.1em;
-}
-.round label{
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 50%;
+    align-items: center;
+    gap: 0.7em;
     cursor: pointer;
-    height: 1.5em;
-    width: 1.5em;
-    display: block;
 }
-.round label:after{
-    border: 2px solid #fff;
-    border-top: none;
-    border-right: none;
-    content: "";
-    height: 0.7em;
-    left: 0.7em;
-    opacity: 0;
-    position: absolute;
-    top: 9px;
-    transform: rotate(-45deg);
-    width: 1.2em;
+
+.btn {
+    border-radius: 0.7em;
+    padding: 0.5em;
+    margin: 0.5em;
+    cursor: pointer;
+    background-color: transparent;
+    transition: transform 0.5s ease;
+    width: 95%;
 }
-.round input[type='checkbox'] {
+
+input[type='checkbox'] {
     appearance: none;
     -webkit-appearance: none;
-    width: 1.5em;
-    height: 1.5em;
+    width: 2em;
+    height: 2em;
     border: 2px solid #8BB4C7;
-    border-radius: 0.5em;
+    border-radius: 0.3em;
     transition: background-color 0.2s ease-in-out;
-    cursor: pointer;
 }
-.round input[type="checkbox"]:checked {
+
+input[type="checkbox"]:checked {
     background-color: #176876;
     border-color: #176876;
 }
-.round input[type="checkbox"]::after{
+input[type="checkbox"]::after{
     color: white;
     font-size: 1.5em;
     position: absolute;
@@ -63,7 +49,7 @@
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
 }
-.round input[type="checkbox"]:checked::after{
+input[type="checkbox"]:checked::after{
     opacity: 1;
 }
 
@@ -72,17 +58,11 @@ label{
     padding: 0.5em;
     color: #176876;
 }
+
 .clear-cart {
-    border-radius: 0.7em;
     border: thin solid #8BB4C7;
-    font-size: 1em;
-    padding: 0.5em;
-    margin: 0.5em;
-    cursor: pointer;
+    font-size: 0.95em;
     color: #176876 ;
-    background-color: transparent;
-    transition: transform 0.5s ease;
-    width: 95%;
 }
 .item-amount button[disabled]{
     opacity: 0.5;
@@ -95,17 +75,32 @@ label{
     margin: 0.5em;
     display: flex;
     flex-direction: column;
-    background: #E0E1E3;
-    box-shadow: rgba(80, 78, 118, .2) 0 -25px 18px -14px inset,rgba(80, 78, 118, .15) 0 1px 2px,rgba(80, 78, 118, .15) 0 2px 4px,rgba(80, 78, 118, .15) 0 4px 8px,rgba(80, 78, 118, .15) 0 8px 16px,rgba(80, 78, 118, .15) 0 16px 32px;
+    background: #f8f7f5;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border-radius: 0.8em;
     width: 55%;
 }
+.cart-clearing .item-cart {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
 .item-cart{
     display: flex;
     align-items: flex-start;
     gap: 2rem;
     margin: 0.4em;
     padding: 0.1em;
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out, margin 0.4s ease-out,
+        padding 0.4s ease-out;
+}
+.item-cart.item-hiding{
+    opacity: 0;
+    transform: scale(0.95);
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 .item-cart img{
     width: 12em;
@@ -122,35 +117,37 @@ label{
 .to-buy-content{
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
     align-items: center;
+    gap: 1em;
 }
+
+.to-buy-content input[type="checkbox"] {
+    margin-left: auto;
+}
+
 .to-buy-content p{
     color: red;
     font-weight: normal;
     font-size: 1.5em;
     margin-bottom: 0;
 }
-.product-name {
-    color: #176876;
-}
-.item-cart button{
-    border: none;
-    background: #8BB4C7;
-    border-radius: 15%;
-    font-size: 1.3em;
-    margin: 0.5em;
-    color: white;
-    cursor: pointer;
-    font-weight: normal;
-    padding: 0.4em;
+
+.to-buy-content .product-name{
     text-align: center;
-    transition: transform 0.3s ease;
+    color: #176876;
+    font-size: 1em;
 }
-.item-cart button:hover{
-    transform: scale(1.02);
+
+.change-amount, .delete-btn{
+    border: thin solid #176876;
+    font-size: 1.1em;
+}
+
+.change-amount:hover, .delete-btn:hover{
+    transform: scale(1.01);
 }
 .bottom-content{
+    margin-top:1.1em;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -160,11 +157,11 @@ label{
     align-items: center;
 }
 .shopping-payments{
-    background: #E0E1E3;
-    box-shadow: rgba(80, 78, 118, .2) 0 -25px 18px -14px inset,rgba(80, 78, 118, .15) 0 1px 2px,rgba(80, 78, 118, .15) 0 2px 4px,rgba(80, 78, 118, .15) 0 4px 8px,rgba(80, 78, 118, .15) 0 8px 16px,rgba(80, 78, 118, .15) 0 16px 32px;
+    background: #f8f7f5;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border-radius: 0.8em;
     color:#176876;
-    font-size: 1.5em;
+    font-size: 1.2em;
     width: 45%;
     margin-right: 0.8em;
     margin-bottom: 5em;

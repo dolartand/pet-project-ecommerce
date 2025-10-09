@@ -7,7 +7,7 @@ import api from "../api/axios";
 
 interface Product {
     id: number;
-    name: string;
+    productName: string;
     description: string;
     price: number;
     imageUrl: string;
@@ -22,6 +22,8 @@ function ShoppingBagPage() {
     const [error, setError] = useState<any>({});
     const [totalSum, setTotalSum] = useState<number>(0);
     const [selectedItems, setSelectedItems] = useState<number[]>([]); // по умолчанию весь массив выбран
+    const [deletingItemId, setDeletingItemId] = useState<number>();
+    const [isCartClearing, setIsCartClearing] = useState<boolean>(false);
     const {isLoggedIn} = useAuth();
 
     useEffect(() => {
@@ -89,17 +91,32 @@ function ShoppingBagPage() {
             });
     },[goods]);
 
-    const handleDeleteItem = (itemId: number) => {}
+    const handleDeleteItem = (itemId: number) => {
+        setDeletingItemId(itemId);
+        setTimeout(()=> {
+            const previousGoods = [...goods];
+            setGoods(current => current.filter(item => item.id !== itemId));
+            api.delete(`/cart/items/${itemId}`)
+                .catch(err => {
+                    console.log(err.message);
+                    setError({deleteItemErr: err.message});
+                    setGoods(previousGoods);
+                })
+        },300);
+    }
 
     const handleClearAll = () => {
-        api.delete('/cart')
-        .then(res =>{
-            setGoods([]);
-        })
-        .catch(err =>{
-            console.log(err.message);
-            setError({clearCart:err.message});
-        })
+        setIsCartClearing(true);
+        setTimeout(()=> {
+            api.delete('/cart')
+                .then(res =>{
+                    setGoods([]);
+                })
+                .catch(err =>{
+                    console.log(err.message);
+                    setError({clearCart:err.message});
+                })
+        },300);
     }
 
     if (!isLoggedIn)    return <Navigate to="/" replace />
@@ -112,26 +129,24 @@ function ShoppingBagPage() {
          <div className='shopping-top'>
              <div className='input-container'>
                  <label htmlFor="chooseAll">Выбрать все</label>
-                 <div className='round'>
-                     <input type="checkbox" id='chooseAll' name='chooseAll' checked={areAllSelected}
+                 <input type="checkbox" id='chooseAll' name='chooseAll' checked={areAllSelected}
                             onChange={handleSelectedAll}/>
-                     <label htmlFor="chooseAll"></label>
-                 </div>
              </div>
          </div>
          <div className='shopping-container'>
-             <div className='shopping-main'>
+             <div className={`shopping-main ${isCartClearing ? 'cart-clearing' : ''}`}>
                  {goods.map((item) => (
                      <ItemCartBuy key={item.id} item={item} onSelectionChange={handleItemSelection}
                      isSelected={selectedItems.includes(item.id)} onQuantityChange={handleQuantityChange}
-                     onDeleteItem={handleDeleteItem}/>
+                     onDeleteItem={handleDeleteItem} isDeleting={deletingItemId === item.id}/>
                  ))}
+                 {error.deleteItemErr && <p>{error.deleteItemErr}</p>}
              </div>
              <div className='shopping-payments'>
                  <p>Всего товаров выбрано: {selectedItems.length}</p>
-                 <button className='clear-cart' type='button' onClick={handleClearAll}>Очистить корзину</button>
+                 <button className='btn clear-cart' type='button' onClick={handleClearAll}>Очистить корзину</button>
                  {error.clearCart && <p>{error.clearCart}</p>}
-                 <h3>К оплате: {totalSum.toFixed(2)} BYN</h3>
+                 <h3>К оплате: <strong>{totalSum.toFixed(2)}</strong> BYN</h3>
 
              </div>
          </div>
