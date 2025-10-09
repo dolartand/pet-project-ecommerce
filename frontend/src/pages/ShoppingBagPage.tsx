@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import ItemCartBuy from "../components/layout/ItemCartBuy";
@@ -13,12 +13,14 @@ interface Product {
     imageUrl: string;
     categoryId: number;
     available: boolean;
+    quantity: number;
 }
 
 function ShoppingBagPage() {
     const [goods, setGoods] = useState<Product[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<any>({});
+    const [totalSum, setTotalSum] = useState<number>(0);
     const [selectedItems, setSelectedItems] = useState<number[]>([]); // по умолчанию весь массив выбран
     const {isLoggedIn} = useAuth();
 
@@ -30,11 +32,11 @@ function ShoppingBagPage() {
                 setGoods(res.data.items);
                 const allItems = res.data.items.map((item: Product) => item.id);
                 setSelectedItems(allItems);
-                setError(null)
+                setError({});
             })
             .catch(err => {
                 console.log('Ошибка получения корзины ', err);
-                setError('Не удалось загрузить корзину. Попробуйте позже.')
+                setError({pageErr:'Не удалось загрузить корзину. Попробуйте позже.'});
             })
             .finally(() => setLoading(false));
     }, []);
@@ -43,6 +45,17 @@ function ShoppingBagPage() {
         const allItemsId = goods.map((item) => item.id);
         setSelectedItems(allItemsId);
     },[goods]);
+
+    useEffect(() => {
+        const newTotalSum = goods
+            .filter(item => selectedItems.includes(item.id))
+            .reduce((sum, currentItem) => {
+                const itemPrice = currentItem.price || 0;
+                const itemQuantity = currentItem.quantity || 1;
+                return sum + (itemPrice*itemQuantity);
+            },0);
+        setTotalSum(newTotalSum);
+    }, [goods, selectedItems]);
 
     const handleItemSelection = (itemId: number) => {
         setSelectedItems(prevSelected => {
@@ -59,9 +72,39 @@ function ShoppingBagPage() {
     }
     const areAllSelected = goods.length > 0 && selectedItems.length === goods.length;
 
+    const handleQuantityChange = useCallback((itemId:number, newQuantity:number) => {
+        if (newQuantity < 1) {
+            return;
+        }
+        const previousGoods = [...goods];
+        setGoods(current => current.map(item =>
+            item.id === itemId ? { ...item, quantity: newQuantity } : item
+        ));
+
+        api.put(`/cart/items/${itemId}`, {quantity: newQuantity})
+            .catch(err => {
+                console.log(err.message);
+                setError({newQuantityErr: err.message});
+                setGoods(previousGoods);
+            });
+    },[goods]);
+
+    const handleDeleteItem = (itemId: number) => {}
+
+    const handleClearAll = () => {
+        api.delete('/cart')
+        .then(res =>{
+            setGoods([]);
+        })
+        .catch(err =>{
+            console.log(err.message);
+            setError({clearCart:err.message});
+        })
+    }
+
     if (!isLoggedIn)    return <Navigate to="/" replace />
     if (loading)    return <div>Loading...</div>
-    if (error)    return <div className='error-msg'>{error}</div>;
+    if (error.pageErr)    return <div className='error-msg'>{error.pageErr}</div>;
     if (goods.length === 0) return <div>Ваша корзина пуста</div>;
 
     return (
@@ -75,18 +118,20 @@ function ShoppingBagPage() {
                      <label htmlFor="chooseAll"></label>
                  </div>
              </div>
-             <button className='action-with-goods'>Что делать с товаром?</button>
          </div>
          <div className='shopping-container'>
              <div className='shopping-main'>
                  {goods.map((item) => (
                      <ItemCartBuy key={item.id} item={item} onSelectionChange={handleItemSelection}
-                     isSelected={selectedItems.includes(item.id)} />
+                     isSelected={selectedItems.includes(item.id)} onQuantityChange={handleQuantityChange}
+                     onDeleteItem={handleDeleteItem}/>
                  ))}
              </div>
              <div className='shopping-payments'>
-                 <p>Всего товаров выбрано {selectedItems.length}</p>
-                 <p>ИТОГО</p>
+                 <p>Всего товаров выбрано: {selectedItems.length}</p>
+                 <button className='clear-cart' type='button' onClick={handleClearAll}>Очистить корзину</button>
+                 {error.clearCart && <p>{error.clearCart}</p>}
+                 <h3>К оплате: {totalSum.toFixed(2)} BYN</h3>
 
              </div>
          </div>

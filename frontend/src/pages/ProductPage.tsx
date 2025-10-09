@@ -108,6 +108,19 @@ function ProductPage({productId, onClose}: ProductPageProps) {
         }
     };
 
+    const handleAddToCart = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.stopPropagation();
+        if (isLoggedIn) {
+            api.post('/cart/items', {productId: product?.id,quantity: 1})
+                .then(res => {
+                    alert(`Товар "${product?.name}" добавлен в корзину.`);
+                })
+                .catch(err => {
+                    setError(err.response?.data?.message || err.response?.data?.errors );
+                })
+        } else alert('Необходима регистрация');
+    }
+
     if (loading)    return <div>Loading...</div>
     return (
         <div className='product-container'>
@@ -126,7 +139,7 @@ function ProductPage({productId, onClose}: ProductPageProps) {
                 </div>
                 <div className='price-info'>
                     <p className='product-price'>{product?.price} BYN</p>
-                    <button className='add-to-cart'>Добавить в корзину</button>
+                    <button className='add-to-cart' onClick={handleAddToCart}>Добавить в корзину</button>
                     {!product?.available && (<p>Товар пока отсутствует</p>)}
                 </div>
             </div>

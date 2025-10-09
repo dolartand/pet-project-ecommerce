@@ -40,36 +40,56 @@
     width: 1.2em;
 }
 .round input[type='checkbox'] {
-     visibility: hidden;
-     display: none;
-     opacity: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    width: 1.5em;
+    height: 1.5em;
+    border: 2px solid #8BB4C7;
+    border-radius: 0.5em;
+    transition: background-color 0.2s ease-in-out;
+    cursor: pointer;
 }
-.round input[type="checkbox"]:checked + label{
-    background-color: #83D350;
-    border-color: #5A7A0A;
+.round input[type="checkbox"]:checked {
+    background-color: #176876;
+    border-color: #176876;
 }
-.round input[type="checkbox"]:checked + label:after{
+.round input[type="checkbox"]::after{
+    color: white;
+    font-size: 1.5em;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+.round input[type="checkbox"]:checked::after{
     opacity: 1;
 }
+
 label{
     font-weight: normal;
     padding: 0.5em;
     color: #176876;
 }
-.action-with-goods{
-    display: block;
-    border: none;
-    background: none;
-    color: #176876;
+.clear-cart {
+    border-radius: 0.7em;
+    border: thin solid #8BB4C7;
+    font-size: 1em;
+    padding: 0.5em;
+    margin: 0.5em;
     cursor: pointer;
-    transition: text-decoration 0.3s ease, color 0.3s ease;
+    color: #176876 ;
+    background-color: transparent;
+    transition: transform 0.5s ease;
+    width: 95%;
 }
 .item-amount button[disabled]{
     opacity: 0.5;
 }
-.action-with-goods:hover {
-    text-decoration: underline #48523D;
-    color: #48523D;
+.clear-cart:hover {
+    transform: scale(1.02);
+    color: #176876;
 }
 .shopping-main{
     margin: 0.5em;
@@ -111,6 +131,9 @@ label{
     font-size: 1.5em;
     margin-bottom: 0;
 }
+.product-name {
+    color: #176876;
+}
 .item-cart button{
     border: none;
     background: #8BB4C7;
@@ -140,7 +163,7 @@ label{
     background: #E0E1E3;
     box-shadow: rgba(80, 78, 118, .2) 0 -25px 18px -14px inset,rgba(80, 78, 118, .15) 0 1px 2px,rgba(80, 78, 118, .15) 0 2px 4px,rgba(80, 78, 118, .15) 0 4px 8px,rgba(80, 78, 118, .15) 0 8px 16px,rgba(80, 78, 118, .15) 0 16px 32px;
     border-radius: 0.8em;
-    color:#8BB4C7 ;
+    color:#176876;
     font-size: 1.5em;
     width: 45%;
     margin-right: 0.8em;
