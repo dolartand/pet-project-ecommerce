@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import LogInPage from "./LogInPage";
 import SignUpPage from "./SignUpPage";
 import '../../styles/FormsAndModals.css';
-import ResetPasswordPage from "./ResetPasswordPage";
+import ResetPasswordModal from "./ResetPasswordModal";
 
 type AuthModeProps = {
     mode : 'login' | 'signup' | 'reset';
@@ -40,7 +40,7 @@ function AuthMode({ mode, onClose, onSwitchMode, onResetMode, onBackToLogIn }: A
                     {mode === 'signup' && ('Уже есть аккаунт? Войти')}
                 </p>
                 {mode === 'reset' && (
-                    <ResetPasswordPage onBackToLogIn={onBackToLogIn}/>
+                    <ResetPasswordModal onBackToLogIn={onBackToLogIn}/>
                 )}
             </div>
         </div>

@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import ItemCartBuy from "../components/layout/ItemCartBuy";
 import '../styles/ShoppingBag.css';
 import api from "../api/axios";
+import OrderFormModal from "../components/layout/OrderFormModal";
 
 interface Product {
     id: number;
@@ -24,6 +25,7 @@ function ShoppingBagPage() {
     const [selectedItems, setSelectedItems] = useState<number[]>([]); // по умолчанию весь массив выбран
     const [deletingItemId, setDeletingItemId] = useState<number>();
     const [isCartClearing, setIsCartClearing] = useState<boolean>(false);
+    const [isOrderFormOpen, setIsOrderFormOpen] = useState(false);
     const {isLoggedIn} = useAuth();
 
     useEffect(() => {
@@ -119,6 +121,15 @@ function ShoppingBagPage() {
         },300);
     }
 
+    const handleOpenOrderForm = () => {setIsOrderFormOpen(true);}
+    const handleCloseOrderForm = () => {setIsOrderFormOpen(false);}
+
+    const handleOrderSuccess = () => {
+        setIsCartClearing(true);
+        setGoods([]);
+        setIsOrderFormOpen(false);
+    }
+
     if (!isLoggedIn)    return <Navigate to="/" replace />
     if (loading)    return <div>Loading...</div>
     if (error.pageErr)    return <div className='error-msg'>{error.pageErr}</div>;
@@ -147,9 +158,10 @@ function ShoppingBagPage() {
                  <button className='btn clear-cart' type='button' onClick={handleClearAll}>Очистить корзину</button>
                  {error.clearCart && <p>{error.clearCart}</p>}
                  <h3>К оплате: <strong>{totalSum.toFixed(2)}</strong> BYN</h3>
-
+                  <button className='btn make-order' onClick={handleOpenOrderForm}>Оформить заказ</button>
              </div>
          </div>
+         {isOrderFormOpen && (<OrderFormModal onClose={handleCloseOrderForm}  onOrderSuccess={handleOrderSuccess}/>)}
      </>
     )
 }

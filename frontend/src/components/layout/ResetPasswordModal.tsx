@@ -6,7 +6,7 @@ type ResetPasswordPageProps = {
     onBackToLogIn: () => void;
 }
 
-function ResetPasswordPage ({onBackToLogIn}: ResetPasswordPageProps) {
+function ResetPasswordModal ({onBackToLogIn}: ResetPasswordPageProps) {
     const [email, setEmail] = useState<string>('');
     const [error, setError] = useState<string>('');
 
@@ -50,4 +50,4 @@ function ResetPasswordPage ({onBackToLogIn}: ResetPasswordPageProps) {
         </form>
     )
 }
-export default ResetPasswordPage;
+export default ResetPasswordModal;

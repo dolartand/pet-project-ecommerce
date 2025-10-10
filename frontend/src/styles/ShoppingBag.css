@@ -59,7 +59,7 @@ label{
     color: #176876;
 }
 
-.clear-cart {
+.clear-cart, .make-order {
     border: thin solid #8BB4C7;
     font-size: 0.95em;
     color: #176876 ;
@@ -67,7 +67,7 @@ label{
 .item-amount button[disabled]{
     opacity: 0.5;
 }
-.clear-cart:hover {
+.clear-cart:hover, .make-order:hover {
     transform: scale(1.02);
     color: #176876;
 }

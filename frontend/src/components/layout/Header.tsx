@@ -1,5 +1,6 @@
 import React from "react";
 import '../../styles/Header.css'
+import {Book02Icon} from 'hugeicons-react';
 import LanguageDropDown from "../ui/LanguageDropDown";
 
 type HeaderProps = {
@@ -8,9 +9,10 @@ type HeaderProps = {
     onCartClick: () => void;
     onMenuClick: () => void;
     onFilterClick: () => void;
+    onOrderHistoryClick: () => void;
 };
 
-function Header({onCartClick, onMenuClick, onFilterClick,isLoggedIn, onAuthClick}: HeaderProps) {
+function Header({onCartClick, onMenuClick, onFilterClick,isLoggedIn, onAuthClick, onOrderHistoryClick}: HeaderProps) {
 
     return (
         <header className="navigation-block">
@@ -46,6 +48,10 @@ function Header({onCartClick, onMenuClick, onFilterClick,isLoggedIn, onAuthClick
                             <li className='simple-menu' onClick={onCartClick}>
                                 <img src="https://img.icons8.com/?size=40&id=9671&format=png&color=FFFFFF" loading="lazy"/>
                                 <p>Корзина</p></li>
+                            <li className='simple-menu' onClick={onOrderHistoryClick}>
+                                <Book02Icon color='#ffffff' size={42}></Book02Icon>
+                                <p>История заказов</p>
+                            </li>
                         </ul>
                     </div>
                 </div>

@@ -1,5 +1,4 @@
 import React, {useState,useEffect} from 'react';
-import {Route, Routes, useNavigate} from "react-router-dom";
 import Header from "./components/layout/Header";
 import AuthMode from "./components/layout/AuthMode";
 import ShoppingBagPage from "./pages/ShoppingBagPage";
@@ -10,6 +9,7 @@ import ProfileModal from "./components/layout/ProfileModal";
 import {useAuth} from "./hooks/useAuth";
 import styles from 'styles/global.module.css';
 import ProductPage from "./pages/ProductPage";
+import OrderPage from "./pages/OrdersPage";
 
 type AuthModeType = 'login' | 'signup' | 'reset' | 'profile' | null;
 export interface Filters {
@@ -36,10 +36,10 @@ function App() {
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
     const [isClosing, setIsClosing] = useState<boolean>(false);
     const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
+    const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState<boolean>(false);
     const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
     const [isFilterClosing, setIsFilterClosing] = useState<boolean>(false);
     const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
-    const navigate = useNavigate();
 
     const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
 
@@ -111,10 +111,18 @@ function App() {
     const handleProductSelect = (productId: number) => {setSelectedProductId(productId);}
     const handleProductClose = () => {setSelectedProductId(null);}
 
+    const handleOpenOrderHistory = () => {
+        if(isLoggedIn) {
+            setSelectedProductId(null);
+            setIsCartOpen(false);
+            setIsOrderHistoryOpen(true);
+        } else  handleOpenLogInModal();
+    }
+
     return (
             <div className="App">
                 <Header onCartClick={handleCartClick} onMenuClick={handleSidebarToggle} onFilterClick={handleFilterToggle}
-                        isLoggedIn={isLoggedIn} onAuthClick={handleOpenLoginOrProfileClick}/>
+                        isLoggedIn={isLoggedIn} onAuthClick={handleOpenLoginOrProfileClick} onOrderHistoryClick={handleOpenOrderHistory}/>
                 <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose}
                          isClosing={isClosing} handleCategorySelected={handleCategorySelect} />
                 <FilterPage isOpen={isFilterOpen} isClosing={isFilterClosing} onClose={handleFilterClose}
@@ -140,6 +148,7 @@ function App() {
                     {selectedProductId !== null ? (
                         <ProductPage productId={selectedProductId} onClose={handleProductClose} />)
                     : isCartOpen ? (<ShoppingBagPage/>)
+                    : isOrderHistoryOpen ? (<OrderPage/>)
                         : (
                         <MainPage
                             filters={filters}
