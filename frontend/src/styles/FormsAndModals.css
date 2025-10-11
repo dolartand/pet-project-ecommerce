@@ -64,6 +64,7 @@ h3{
     text-align: center;
     color:#176876;
     font-weight: normal;
+    margin-top:0.1em;
 }
 form {
     display: flex;
@@ -98,7 +99,8 @@ input{
     width: 95%;
 }
 .submit-btn:hover,
-.edit-btn:hover{
+.edit-btn:hover,
+.cancel-btn:hover{
     transform: scale(1.02);
 }
 .checkbox-label{
@@ -165,4 +167,28 @@ input:hover, input:focus {
 .sorting select:hover{
     border-color: #8BB4C7;
     outline: none;
+}
+
+.item-info-detail {
+    display: flex;
+    flex-direction: row;
+    gap: 0.2em;
+}
+.item-info-detail p {
+    align-items: center;
+    color: #176876;
+    margin-left: 0.5em;
+}
+
+.cancel-btn {
+    border-radius: 0.7em;
+    border: thin solid firebrick;
+    font-size: 1em;
+    padding: 0.5em;
+    margin: 0.5em;
+    cursor: pointer;
+    color: #CF0000 ;
+    background-color: transparent;
+    transition: transform 0.5s ease;
+    width: 95%;
 }

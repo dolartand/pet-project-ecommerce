@@ -1,5 +1,7 @@
 import React, {useEffect, useState} from "react";
 import api from "../api/axios";
+import OrderFormModal from "../components/layout/OrderFormModal";
+import OrderDetailsModal from "../components/layout/OrderDetailsModal";
 
 interface Item {
     productName: string;
@@ -15,6 +17,8 @@ interface Order {
 
 function OrderPage() {
     const [orders, setOrders] = useState<Order[]>([]);
+    const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
+    const [idOrder, setIdOrder] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
 
@@ -32,7 +36,11 @@ function OrderPage() {
             .finally(()=> setLoading(false));
     }, []);
 
-    const handleOpenOrder = (id: number) => {}
+    const handleOpenOrder = (id: number) => {
+        setIdOrder(id);
+        setIsOrderDetailsOpen(true);
+    }
+    const handleCloseOrderForm = () => {setIsOrderDetailsOpen(false);}
 
     if (loading)    return <div>Loading...</div>
     if (orders.length === 0) return <div>Ваша история заказов пуста</div>;
@@ -55,6 +63,7 @@ function OrderPage() {
                     </div>
                 </div>
             ))}
+            {isOrderDetailsOpen && (<OrderDetailsModal onClose={handleCloseOrderForm} orderId={idOrder}/>)}
         </div>
     )
 }
