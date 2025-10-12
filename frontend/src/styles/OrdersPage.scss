@@ -1,0 +1,82 @@
+@mixin btn ($border-color, $color) {
+  border-radius: 0.7em;
+  border: thin solid $border-color;
+  font-size: 1em;
+  padding: 0.5em;
+  margin: 0.5em;
+  cursor: pointer;
+  color: $color ;
+  background-color: transparent;
+  transition: transform 0.5s ease;
+  width: 85%;
+}
+
+.error-msg, .cancelledStatus {
+  margin-bottom: 0.5em;
+  color: #c00;
+  font-size: 0.9em;
+}
+
+.btn-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  flex-basis: 15em;
+  align-items: center;
+
+  .get-more-info {
+    @include btn (#176876, #176876)
+  }
+  .cancel-btn {
+    @include btn (firebrick, #CF0000)
+  }
+}
+
+.orders-list {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 1.5em;
+}
+
+.order-container {
+  background: #f8f7f5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 0.8em;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2rem;
+  margin: 0.4em;
+  padding: 0.5em;
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out, margin 0.4s ease-out,
+  padding 0.4s ease-out;
+}
+.order-container.order-hiding{
+  opacity: 0;
+  transform: scale(0.95);
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.order-info {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  align-items: center;
+  gap: 2.5em;
+  width: 100%;
+}
+
+.items-info {
+  flex-grow: 1;
+  p {
+    color: #176876;
+  }
+  .item {
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+  }
+}

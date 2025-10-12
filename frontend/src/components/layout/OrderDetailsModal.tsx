@@ -45,7 +45,6 @@ function OrderDetailsModal({ orderId, onClose,}: OrderDetailsModalProps) {
     });
     const [error, setError] = useState<any>({});
     const [isClosing, setIsClosing] = useState<boolean>(false);
-    const [successMsg, setSuccessMsg] = useState<string>('');
 
     useEffect(() => {
         api.get(`/orders/${orderId}`)
@@ -68,11 +67,6 @@ function OrderDetailsModal({ orderId, onClose,}: OrderDetailsModalProps) {
 
     const handleClose = () => setIsClosing(true);
 
-    const handleCancelOrder = (orderId: number) => {
-
-        setSuccessMsg('Заказ успешно отменен.');
-    }
-
     return (
         <div className={`modal-backdrop${isClosing ? ' closing' : ''}`} onClick={handleClose}>
             <div className={`page-content${isClosing ? ' closing' : ''}`} onClick={e => e.stopPropagation()}>
@@ -80,13 +74,13 @@ function OrderDetailsModal({ orderId, onClose,}: OrderDetailsModalProps) {
                 <h3>Детали заказа</h3>
                 {error.getOrderDetails && (<div className='error-msg'>{error.getOrderDetails}</div>)}
 
-                <label htmlFor="totalAmount" className='totalAmount'>Общая стоимость заказа</label>
+                <label htmlFor="totalAmount" className='totalAmount'>Общая стоимость заказа (BYN)</label>
                 <input type="text" id="totalAmount" value={orderDetails.totalAmount} readOnly={true}/>
 
                 {orderDetails.items.map(item =>(
                     <div className='item-info-detail' key={item.productId}>
                         <p>{item.productName} - </p>
-                        <p>{item.priceAtTime}</p>
+                        <p>{item.priceAtTime} - </p>
                         <p>кол-во: {item.quantity}</p>
                     </div>
                 ))}
@@ -97,10 +91,6 @@ function OrderDetailsModal({ orderId, onClose,}: OrderDetailsModalProps) {
 
                 <label htmlFor="comment" className='comment'>Комментарий к заказу</label>
                 <input type="text" id='comment' value={orderDetails.comment} readOnly={true} />
-
-                <button type='button' className='cancel-btn' onClick={()=> handleCancelOrder(orderId)}>Отменить заказ</button>
-                {error.cancelErr && (<div className='error-msg'>{error.cancelErr}</div>)}
-                {!error.postErr && (<p className='success-msg'>{successMsg}</p>)}
             </div>
         </div>
     )
