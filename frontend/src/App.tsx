@@ -4,7 +4,7 @@ import AuthMode from "./components/layout/AuthMode";
 import ShoppingBagPage from "./pages/ShoppingBagPage";
 import MainPage from "./pages/MainPage";
 import Sidebar from "./components/layout/Sidebar";
-import FilterPage from "./components/layout/FilterPage";
+import FilterModal from "./components/layout/FilterModal";
 import ProfileModal from "./components/layout/ProfileModal";
 import {useAuth} from "./hooks/useAuth";
 import styles from 'styles/global.module.css';
@@ -23,12 +23,13 @@ export interface Filters {
     sortBy?: string;
     sortOrder?: string;
 }
-export const INITIAL_FILTERS: Filters = {
+const INITIAL_FILTERS: Filters = {
     page: 0,
     size: 20,
     sortBy: "createdAt",
     sortOrder: "desc",
 }
+export {INITIAL_FILTERS};
 
 function App() {
     const [authMode, setAuthMode] = useState<AuthModeType>(null);
@@ -60,6 +61,7 @@ function App() {
             document.body.classList.remove('noScroll');
         };
     }, [authMode]);
+
     useEffect(()=>{
         if (!isClosing) return;
         const timer = setTimeout(()=>{
@@ -68,6 +70,7 @@ function App() {
         },300);
         return () => {clearTimeout(timer);};
     },[isClosing]);
+
     useEffect(()=>{
         if (!isFilterClosing) return;
         const timer = setTimeout(()=>{
@@ -82,7 +85,6 @@ function App() {
         if (isSidebarOpen)    setIsClosing(true);
         else {
             setIsSidebarOpen(true);
-            setIsClosing(false);
         }
     }
 
@@ -119,14 +121,19 @@ function App() {
         } else  handleOpenLogInModal();
     }
 
+    const handleSearchSubmit = (searchInput: string) => {
+        setFilters(prev=>({...prev, search: searchInput ?? undefined, page: 0}));
+    }
+
     return (
             <div className="App">
                 <Header onCartClick={handleCartClick} onMenuClick={handleSidebarToggle} onFilterClick={handleFilterToggle}
-                        isLoggedIn={isLoggedIn} onAuthClick={handleOpenLoginOrProfileClick} onOrderHistoryClick={handleOpenOrderHistory}/>
+                        isLoggedIn={isLoggedIn} onAuthClick={handleOpenLoginOrProfileClick}
+                        onOrderHistoryClick={handleOpenOrderHistory} onSearchSubmit={handleSearchSubmit}/>
                 <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose}
-                         isClosing={isClosing} handleCategorySelected={handleCategorySelect} />
-                <FilterPage isOpen={isFilterOpen} isClosing={isFilterClosing} onClose={handleFilterClose}
-                        filters={filters} setFilters={setFilters}/>
+                         isClosing={isClosing} handleCategorySelected={handleCategorySelect}/>
+                <FilterModal isOpen={isFilterOpen} isClosing={isFilterClosing} onClose={handleFilterClose}
+                             filters={filters} setFilters={setFilters}/>
 
                 {authMode=== 'profile' && isLoggedIn && (
                     <div className="modal-backdrop" onClick={() => setAuthMode(null)}>

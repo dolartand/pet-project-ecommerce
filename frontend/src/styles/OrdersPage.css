@@ -1,7 +1,7 @@
 .error-msg, .cancelledStatus {
   margin-bottom: 0.5em;
   color: #c00;
-  font-size: 0.9em;
+  font-size: 0.95em;
 }
 
 .btn-section {
@@ -34,6 +34,9 @@
   background-color: transparent;
   transition: transform 0.5s ease;
   width: 85%;
+}
+.btn-section .cancel-btn button[disabled] {
+  opacity: 0.5;
 }
 
 .orders-list {

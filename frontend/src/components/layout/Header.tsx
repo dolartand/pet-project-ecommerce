@@ -1,6 +1,6 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import '../../styles/Header.css'
-import {Book02Icon} from 'hugeicons-react';
+import {Book02Icon, Search01Icon} from 'hugeicons-react';
 import LanguageDropDown from "../ui/LanguageDropDown";
 
 type HeaderProps = {
@@ -10,9 +10,16 @@ type HeaderProps = {
     onMenuClick: () => void;
     onFilterClick: () => void;
     onOrderHistoryClick: () => void;
+    onSearchSubmit: (input:string) => void;
 };
 
-function Header({onCartClick, onMenuClick, onFilterClick,isLoggedIn, onAuthClick, onOrderHistoryClick}: HeaderProps) {
+function Header({onCartClick, onMenuClick, onFilterClick,isLoggedIn, onAuthClick, onOrderHistoryClick, onSearchSubmit}: HeaderProps) {
+    const [localSearchInput, setLocalSearchInput] = useState('');
+
+    const handleSearch = (event: React.FormEvent) => {
+        event.preventDefault();
+        onSearchSubmit(localSearchInput);
+    };
 
     return (
         <header className="navigation-block">
@@ -22,8 +29,6 @@ function Header({onCartClick, onMenuClick, onFilterClick,isLoggedIn, onAuthClick
                         <li className='simple-menu-item money'>
                             <LanguageDropDown />
                         </li>
-                        <li className='simple-menu-item collection-point'>Пункты выдачи</li>
-                        <li className='simple-menu-item help'>Помощь</li>
                     </ul>
                 </div>
                 <div className='navigation-bottom'>
@@ -34,8 +39,11 @@ function Header({onCartClick, onMenuClick, onFilterClick,isLoggedIn, onAuthClick
                         <button className='burger-btn' type='button' aria-label='Навигация' onClick={onMenuClick}>☰</button>
                     </div>
                     <div className='search-block'>
-                        <input type="text" placeholder="Найти на сайте"/>
-                        <button className='submit-input'><img src='https://img.icons8.com/?size=100&id=132&format=png&color=000000' alt="Поиск" loading="lazy"/></button>
+                        <form onSubmit={handleSearch}>
+                            <input type="text" placeholder="Найти на сайте" value={localSearchInput}
+                                   onChange={e => setLocalSearchInput(e.target.value)}/>
+                            <button className='submit-input' type='submit'><Search01Icon color='#000000' size={36}/></button>
+                        </form>
                         <button id='filterBtn' type='button' onClick={onFilterClick}>
                             <img src="/assets/filter.png" alt="Фильтр" loading="lazy"/>
                         </button>

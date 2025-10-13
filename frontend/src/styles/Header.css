@@ -60,15 +60,19 @@ ul li {
     transform: scale(1.02);
 }
 .search-block{
-    background-color: #E0E1E3;
+    background-color: whitesmoke;
     border-radius:0.5em;
     width:50%;
     display:flex;
     flex-direction: row;
     align-items: center;
 }
+.search-block form{
+    display:flex;
+    flex-direction: row;
+    flex-grow: 1;
+}
 .search-block input {
-    width:100%;
     border:none;
     border-radius:0.5em;
     font-size:1.2em;
@@ -76,8 +80,8 @@ ul li {
     margin: 0.1em;
     background-color:transparent;
     outline:none;
-
     transition: transform 0.3s ease;
+    flex-grow: 1;
 }
 .search-block input:hover,
 .search-block input:focus {
@@ -98,7 +102,6 @@ ul li {
 .search-block button img {
     width:3em;
     display:block;
-
 }
 #filterBtn img{
     width:2em;

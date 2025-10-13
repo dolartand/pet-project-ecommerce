@@ -10,7 +10,7 @@ interface Item {
 
 interface Order {
     id: number;
-    status: string;
+    orderStatus: string;
     totalAmount: number;
     items: Item[];
     comment: string;
@@ -53,7 +53,7 @@ function OrderPage() {
                     setOrders(currentOrders =>
                         currentOrders.map(order => {
                             if (order.id === id) {
-                                return { ...order, status: 'CANCELLED' };
+                                return { ...order, orderStatus: 'CANCELLED' };
                             }
                             return order;
                         })
@@ -71,8 +71,8 @@ function OrderPage() {
     if (error.getOrdersErr)    return <div className='error-msg'>{error}</div>;
 
     const sortedOrders = [...orders].sort(function (a,b){
-        if (a.status === 'CANCELLED' && b.status !== "CANCELLED") return 1;
-        if (a.status !== 'CANCELLED' && b.status === "CANCELLED") return -1;
+        if (a.orderStatus === 'CANCELLED' && b.orderStatus !== "CANCELLED") return 1;
+        if (a.orderStatus !== 'CANCELLED' && b.orderStatus === "CANCELLED") return -1;
         return 0;
     });
 
@@ -94,12 +94,12 @@ function OrderPage() {
                         <div className='btn-section'>
                             <button className='get-more-info' onClick={()=> handleOpenOrder(order.id)}>Подробнее</button>
                             <button type='button' className='cancel-btn' onClick={()=> handleCancelOrder(order.id)}
-                                    disabled={order.status === 'CANCELLED'}>Отменить заказ</button>
+                                    disabled={order.orderStatus === 'CANCELLED'}>Отменить заказ</button>
                             {error.cancelOrderErr && (<p className='error-msg'>{error.cancelOrderErr}</p>)}
-                            {order.status === 'CANCELLED' && (<p className='cancelledStatus'>Заказ отменен</p>)}
+                            {order.orderStatus === 'CANCELLED' && (<p className='cancelledStatus'>Заказ отменен</p>)}
                         </div>
                     </div>
-                    <h3 className='total-amount'>К оплате: <strong>{order.totalAmount}</strong>BYN</h3>
+                    <h3 className='total-amount'>К оплате: <strong>{order.totalAmount}</strong> BYN</h3>
                 </div>
             ))}
             {isOrderDetailsOpen && (<OrderDetailsModal onClose={handleCloseOrderForm} orderId={idOrder}/>)}

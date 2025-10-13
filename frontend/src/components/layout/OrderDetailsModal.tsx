@@ -79,8 +79,8 @@ function OrderDetailsModal({ orderId, onClose,}: OrderDetailsModalProps) {
 
                 {orderDetails.items.map(item =>(
                     <div className='item-info-detail' key={item.productId}>
-                        <p>{item.productName} - </p>
-                        <p>{item.priceAtTime} - </p>
+                        <p>{item.productName}</p>
+                        <p> {item.priceAtTime}br</p>
                         <p>кол-во: {item.quantity}</p>
                     </div>
                 ))}

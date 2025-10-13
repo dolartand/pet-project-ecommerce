@@ -14,7 +14,7 @@
 .error-msg, .cancelledStatus {
   margin-bottom: 0.5em;
   color: #c00;
-  font-size: 0.9em;
+  font-size: 0.95em;
 }
 
 .btn-section {
@@ -29,6 +29,9 @@
   }
   .cancel-btn {
     @include btn (firebrick, #CF0000)
+  }
+  .cancel-btn button[disabled]{
+    opacity: 0.5;
   }
 }
 

@@ -6,7 +6,7 @@ type SignUpPageProps = {
     onSignUpSuccess: () => void;
 }
 
-function SignUpPage({ onSignUpSuccess }: SignUpPageProps) {
+function SignUpModal({ onSignUpSuccess }: SignUpPageProps) {
     const [firstName, setFirstName] = useState<string>('');
     const [lastName,  setLastName]  = useState<string>('');
     const [email,     setEmail]     = useState<string>('');
@@ -87,4 +87,4 @@ function SignUpPage({ onSignUpSuccess }: SignUpPageProps) {
         </form>
     )
 }
-export default SignUpPage;
+export default SignUpModal;

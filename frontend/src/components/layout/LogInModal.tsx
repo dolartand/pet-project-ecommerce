@@ -8,7 +8,7 @@ type LogInPageProps = {
     onLogInSuccess: () => void; // для закрытия окна
 };
 
-function LogInPage ({onShowResetPage, onLogInSuccess}: LogInPageProps)  {
+function LogInModal ({onShowResetPage, onLogInSuccess}: LogInPageProps)  {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [error, setError] = useState<any>({});
@@ -71,4 +71,4 @@ function LogInPage ({onShowResetPage, onLogInSuccess}: LogInPageProps)  {
         </form>
     )
 }
-export default LogInPage;
+export default LogInModal;

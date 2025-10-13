@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
-import LogInPage from "./LogInPage";
-import SignUpPage from "./SignUpPage";
+import LogInModal from "./LogInModal";
+import SignUpModal from "./SignUpModal";
 import '../../styles/FormsAndModals.css';
 import ResetPasswordModal from "./ResetPasswordModal";
 
@@ -30,10 +30,10 @@ function AuthMode({ mode, onClose, onSwitchMode, onResetMode, onBackToLogIn }: A
             <div className={`page-content${isClosing ? ' closing' : ''}`} onClick={e => e.stopPropagation()}>
                 <button type='button' aria-label='Закрыть форму' className="onClose" onClick={handleClose}>✕</button>
                 {mode === 'login' && (
-                    <LogInPage onShowResetPage={onResetMode}  onLogInSuccess={handleClose}/>
+                    <LogInModal onShowResetPage={onResetMode} onLogInSuccess={handleClose}/>
                 )}
                 {mode === 'signup' && (
-                    <SignUpPage onSignUpSuccess={onSwitchMode}/>
+                    <SignUpModal onSignUpSuccess={onSwitchMode}/>
                 )}
                 <p className='switch-link' onClick={onSwitchMode}>
                     {mode === 'login' && ('Нет аккаунта? Создать')}

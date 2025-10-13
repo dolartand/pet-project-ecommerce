@@ -17,6 +17,7 @@ type SidebarProps = {
 function Sidebar({ isOpen, onClose, isClosing, handleCategorySelected }: SidebarProps) {
     const [categories, setCategories] = React.useState<Category[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [isAnimating, setIsAnimating] = useState<boolean>(false);
     const [error, setError] = React.useState<string | null>(null);
 
     useEffect(() => {
@@ -33,11 +34,18 @@ function Sidebar({ isOpen, onClose, isClosing, handleCategorySelected }: Sidebar
         .finally(() => setLoading(false));
     }, []);
 
+    useEffect(() => {
+        if (isOpen) {
+            const timer = setTimeout(()=>{setIsAnimating(true)},10);
+            return () => clearTimeout(timer);
+        } else  setIsAnimating(false);
+    },[isOpen])
+
     if (!isOpen && !isClosing)    return null;
 
     return (
         <div className={`sidebar-content ${isClosing ? 'closing' : ''}`} onClick={onClose}>
-            <nav className={`sidebar-container ${isOpen && !isClosing ? 'open' : ''} ${isClosing ? 'closing' : ''}`} onClick={e => e.stopPropagation()}>
+            <nav className={`sidebar-container ${isAnimating && !isClosing ? 'open' : ''} ${isClosing ? 'closing' : ''}`} onClick={e => e.stopPropagation()}>
                 <h1>Категории товаров</h1>
                 {loading && (<div>Загрузка...</div>)}
                 {error && <div className='error-msg'>{error}</div>}

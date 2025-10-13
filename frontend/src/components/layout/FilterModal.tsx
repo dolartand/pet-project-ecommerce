@@ -10,7 +10,7 @@ type FilterPageProps = {
     setFilters: (f: Filters) => void;
 }
 
-function FilterPage({isOpen, onClose, isClosing, filters, setFilters}: FilterPageProps) {
+function FilterModal({isOpen, onClose, isClosing, filters, setFilters}: FilterPageProps) {
     const [local, setLocal] = useState<Filters>(filters);
     const [err, setErr] = useState<string|null>(null);
 
@@ -115,4 +115,4 @@ function FilterPage({isOpen, onClose, isClosing, filters, setFilters}: FilterPag
         </div>
     )
 }
-export default FilterPage;
+export default FilterModal;
