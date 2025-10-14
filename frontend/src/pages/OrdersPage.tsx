@@ -102,7 +102,8 @@ function OrderPage() {
                     <h3 className='total-amount'>К оплате: <strong>{order.totalAmount}</strong> BYN</h3>
                 </div>
             ))}
-            {isOrderDetailsOpen && (<OrderDetailsModal onClose={handleCloseOrderForm} orderId={idOrder}/>)}
+            {isOrderDetailsOpen && (<OrderDetailsModal onClose={handleCloseOrderForm} orderId={idOrder}
+                                    isOpen={isOrderDetailsOpen}/>)}
         </div>
     )
 }

@@ -15,15 +15,17 @@ interface OrderInfo{
 type OrderFormModalProps = {
     onClose: () => void;
     onOrderSuccess: () => void;
+    isOpen: boolean;
 }
 
-function OrderFormModal({onClose, onOrderSuccess}: OrderFormModalProps) {
+function OrderFormModal({onClose, onOrderSuccess, isOpen}: OrderFormModalProps) {
     const [orderInfo, setOrderInfo] = useState<OrderInfo>({
         address: {shippingStreet: '', shippingCity: '', shippingPostalCode: ''},
         comment: ''});
     const [error, setError] = useState<any>({});
     const [isClosing, setIsClosing] = useState<boolean>(false);
     const [successMsg, setSuccessMsg] = useState<string>('');
+    const [isAnimating, setIsAnimating] = useState<boolean>(false);
 
     useEffect(()=>{
         if (!isClosing) return;
@@ -33,6 +35,13 @@ function OrderFormModal({onClose, onOrderSuccess}: OrderFormModalProps) {
         },300);
         return () => {clearTimeout(timer);};
     },[isClosing, onClose]);
+
+    useEffect(() => {
+        if (isOpen) {
+            const timer = setTimeout(()=>{setIsAnimating(true)},10);
+            return () => clearTimeout(timer);
+        } else  setIsAnimating(false);
+    },[isOpen]);
 
     const handleClose = () => setIsClosing(true);
 
@@ -69,7 +78,7 @@ function OrderFormModal({onClose, onOrderSuccess}: OrderFormModalProps) {
 
     return (
         <div className={`modal-backdrop${isClosing ? ' closing' : ''}`} onClick={handleClose}>
-            <div className={`page-content${isClosing ? ' closing' : ''}`} onClick={e => e.stopPropagation()}>
+            <div className={`page-content ${isAnimating && !isClosing ? 'open' : ''} ${isClosing ? ' closing' : ''}`} onClick={e => e.stopPropagation()}>
                 <button type='button' aria-label='Закрыть форму' className="onClose" onClick={handleClose}>✕</button>
                 <h3>Оформление заказа</h3>
                 <label htmlFor="street" className='street'> Адрес доставки</label>

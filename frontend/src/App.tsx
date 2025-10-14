@@ -34,6 +34,7 @@ export {INITIAL_FILTERS};
 function App() {
     const [authMode, setAuthMode] = useState<AuthModeType>(null);
     const {isLoggedIn} = useAuth();
+    const [isAuthModalClosing, setIsAuthModalClosing] = useState<boolean>(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
     const [isClosing, setIsClosing] = useState<boolean>(false);
     const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
@@ -41,18 +42,19 @@ function App() {
     const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
     const [isFilterClosing, setIsFilterClosing] = useState<boolean>(false);
     const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+    const [isAnimating, setIsAnimating] = useState<boolean>(false);
 
     const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
 
-    const handleOpenLogInModal = () => {
-        setAuthMode('login');
-    }
+    const handleOpenLogInModal = () => {setAuthMode('login');}
 
     const handleOpenLoginOrProfileClick = () =>{
         if (isLoggedIn) setAuthMode('profile');
         else
             setAuthMode('login');
     }
+
+    const handleAuthModalClose = () => {setIsAuthModalClosing(true)};
 
     useEffect(() => {
         if (authMode === 'login' || authMode === 'signup')  document.body.classList.add('noScroll');
@@ -79,6 +81,22 @@ function App() {
         },300);
         return () => {clearTimeout(timer);};
     },[isFilterClosing]);
+
+    useEffect(() => {
+        if (!isAuthModalClosing) return;
+        const timer = setTimeout(() => {
+            setAuthMode(null);
+            setIsAuthModalClosing(false);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [isAuthModalClosing]);
+
+    useEffect(() => {
+        if (authMode) {
+            const timer = setTimeout(() => { setIsAnimating(true) }, 10);
+            return () => clearTimeout(timer);
+        } else setIsAnimating(false);
+    }, [authMode]);
 
     const handleSidebarClose = () => { setIsClosing(true); }
     const handleSidebarToggle = () => {
@@ -136,9 +154,9 @@ function App() {
                              filters={filters} setFilters={setFilters}/>
 
                 {authMode=== 'profile' && isLoggedIn && (
-                    <div className="modal-backdrop" onClick={() => setAuthMode(null)}>
-                        <div className="page-content" onClick={e => e.stopPropagation()}>
-                            <ProfileModal handleClose={() => setAuthMode(null)}/>
+                    <div className={`modal-backdrop ${isAuthModalClosing ? 'closing' : ''}`} onClick={() => setAuthMode(null)}>
+                        <div className={`page-content${isAnimating ? 'open' : ''} ${isAuthModalClosing ? 'closing' : ''}`} onClick={e => e.stopPropagation()}>
+                            <ProfileModal handleClose={handleAuthModalClose}/>
                         </div>
                     </div>
                 )}

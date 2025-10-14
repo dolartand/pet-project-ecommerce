@@ -27,9 +27,10 @@ interface OrderDetails {
 type OrderDetailsModalProps = {
     orderId: number;
     onClose: () => void;
+    isOpen: boolean;
 }
 
-function OrderDetailsModal({ orderId, onClose,}: OrderDetailsModalProps) {
+function OrderDetailsModal({ orderId, onClose, isOpen}: OrderDetailsModalProps) {
     const [orderDetails, setOrderDetails] = useState<OrderDetails>({
         id: 0,
         status: '',
@@ -45,6 +46,7 @@ function OrderDetailsModal({ orderId, onClose,}: OrderDetailsModalProps) {
     });
     const [error, setError] = useState<any>({});
     const [isClosing, setIsClosing] = useState<boolean>(false);
+    const [isAnimating, setIsAnimating] = useState<boolean>(false);
 
     useEffect(() => {
         api.get(`/orders/${orderId}`)
@@ -56,7 +58,8 @@ function OrderDetailsModal({ orderId, onClose,}: OrderDetailsModalProps) {
                 setError({getOrderDetails: error.message});
             })
     }, []);
-    useEffect(()=>{
+
+    useEffect(()=> {
         if (!isClosing) return;
         const timer = setTimeout(()=>{
             setIsClosing(false);
@@ -65,11 +68,18 @@ function OrderDetailsModal({ orderId, onClose,}: OrderDetailsModalProps) {
         return () => {clearTimeout(timer);};
     },[isClosing, onClose]);
 
+    useEffect(() => {
+        if (isOpen) {
+            const timer = setTimeout(()=>{setIsAnimating(true)},10);
+            return () => clearTimeout(timer);
+        } else  setIsAnimating(false);
+    },[isOpen]);
+
     const handleClose = () => setIsClosing(true);
 
     return (
         <div className={`modal-backdrop${isClosing ? ' closing' : ''}`} onClick={handleClose}>
-            <div className={`page-content${isClosing ? ' closing' : ''}`} onClick={e => e.stopPropagation()}>
+            <div className={`page-content ${isAnimating && !isClosing ? 'open' : ''} ${isClosing ? ' closing' : ''}`} onClick={e => e.stopPropagation()}>
                 <button type='button' aria-label='Закрыть форму' className="onClose" onClick={handleClose}>✕</button>
                 <h3>Детали заказа</h3>
                 {error.getOrderDetails && (<div className='error-msg'>{error.getOrderDetails}</div>)}

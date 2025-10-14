@@ -30,12 +30,19 @@
     background: #fff;
     border-radius: 0.6em;
     padding: 1em;
-    transform: translateY(0);
-    transition: transform 0.3s ease;
+    transform: translateY(2em);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
     width: 20%;
 }
 .page-content.closing{
     transform: translateY(-2em);
+}
+.page-content.open {
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    opacity: 1;
 }
 .onClose{
     border-radius: 1em;

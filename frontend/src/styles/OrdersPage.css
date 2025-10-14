@@ -23,6 +23,9 @@
   transition: transform 0.5s ease;
   width: 85%;
 }
+.btn-section .get-more-info:hover {
+  transform: scale(1.02);
+}
 .btn-section .cancel-btn {
   border-radius: 0.7em;
   border: thin solid firebrick;
@@ -35,8 +38,9 @@
   transition: transform 0.5s ease;
   width: 85%;
 }
-.btn-section .cancel-btn button[disabled] {
+.btn-section .cancel-btn[disabled] {
   opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .orders-list {

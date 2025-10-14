@@ -161,7 +161,8 @@ function ShoppingBagPage() {
                   <button className='btn make-order' onClick={handleOpenOrderForm}>Оформить заказ</button>
              </div>
          </div>
-         {isOrderFormOpen && (<OrderFormModal onClose={handleCloseOrderForm}  onOrderSuccess={handleOrderSuccess}/>)}
+         {isOrderFormOpen && (<OrderFormModal onClose={handleCloseOrderForm}
+                                      isOpen={isOrderFormOpen} onOrderSuccess={handleOrderSuccess}/>)}
      </>
     )
 }

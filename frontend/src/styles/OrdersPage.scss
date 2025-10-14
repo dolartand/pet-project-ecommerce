@@ -27,11 +27,15 @@
   .get-more-info {
     @include btn (#176876, #176876)
   }
+  .get-more-info:hover {
+    transform: scale(1.02);
+  }
   .cancel-btn {
     @include btn (firebrick, #CF0000)
   }
-  .cancel-btn button[disabled]{
+  .cancel-btn[disabled]{
     opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
