@@ -207,7 +207,7 @@ public class AuthService {
     public void resetPassword(ResetPasswordRequest req) {
         log.info("Attempting for reset password");
 
-        if (req.getNewPassword().equals(req.getConfirmPassword())) {
+        if (!req.getNewPassword().equals(req.getConfirmPassword())) {
             throw new ValidationException("Passwords are not match");
         }
 
