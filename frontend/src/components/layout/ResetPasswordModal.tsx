@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import api from "../../api/axios";
+import {apiPublic} from "../../api/axios";
 import '../../styles/FormsAndModals.css';
 
 type ResetPasswordPageProps = {
@@ -32,12 +32,11 @@ function ResetPasswordModal ({onBackToLogIn}: ResetPasswordPageProps) {
     const handleForgotPassword = (e : React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!validate()) return;
-        api.post('/auth/forgot-password', email)
+        apiPublic.post('/auth/forgot-password', {email})
             .then(res => {
-                alert(res.data.message);
+                // alert(res.data.message);
                 // потом поменяю на собственный компонент для сообщений
                 setError('');
-                setEmail('');
                 setToken(res.data.token);
             })
         .catch(err => {
@@ -46,7 +45,12 @@ function ResetPasswordModal ({onBackToLogIn}: ResetPasswordPageProps) {
     }
 
     const handleResetPassword = () => {
-        api.post('/auth/reset-password',{token:token, newPassword:password, confirmPassword:confirmPassword})
+        const requestBody = {
+            token: token,
+            newPassword: password,
+            confirmPassword: confirmPassword
+        };
+        apiPublic.post('/auth/reset-password', requestBody)
             .then((res) => {
                 setSuccess(res.data.message);
                 setError('');
@@ -65,11 +69,11 @@ function ResetPasswordModal ({onBackToLogIn}: ResetPasswordPageProps) {
             {error && (<div className='error-msg'>{error}</div>)}
             <button type='submit' className='submit-btn'>Сбросить</button>
             {token && (<>
-                <label htmlFor="password">Новый пароль</label>
+                <label htmlFor="password" className='formLabel'>Новый пароль</label>
                 <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)}/>
                 <input type="text" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-                       placeholder="введите старый пароль"/>
-                <button className='submit-btn' onClick={handleResetPassword}>Установить новый пароль</button>
+                       placeholder="повторите пароль"/>
+                <button className='submit-btn' onClick={handleResetPassword} type='button'>Установить новый пароль</button>
             </>)}
             <p className='forgetPassword' onClick={onBackToLogIn}>Вернуться</p>
         </form>

@@ -10,6 +10,7 @@ import {useAuth} from "./hooks/useAuth";
 import styles from 'styles/global.module.css';
 import ProductPage from "./pages/ProductPage";
 import OrderPage from "./pages/OrdersPage";
+import AdminPage from "./pages/AdminPage";
 
 type AuthModeType = 'login' | 'signup' | 'reset' | 'profile' | null;
 export interface Filters {
@@ -33,8 +34,7 @@ export {INITIAL_FILTERS};
 
 function App() {
     const [authMode, setAuthMode] = useState<AuthModeType>(null);
-    const {isLoggedIn} = useAuth();
-    const [isAuthModalClosing, setIsAuthModalClosing] = useState<boolean>(false);
+    const {isLoggedIn, user} = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
     const [isClosing, setIsClosing] = useState<boolean>(false);
     const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
@@ -42,9 +42,10 @@ function App() {
     const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
     const [isFilterClosing, setIsFilterClosing] = useState<boolean>(false);
     const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
-    const [isAnimating, setIsAnimating] = useState<boolean>(false);
 
     const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
+
+    if (isLoggedIn && user?.role === 'ADMIN') {return <AdminPage/>}
 
     const handleOpenLogInModal = () => {setAuthMode('login');}
 
@@ -53,8 +54,6 @@ function App() {
         else
             setAuthMode('login');
     }
-
-    const handleAuthModalClose = () => {setIsAuthModalClosing(true)};
 
     useEffect(() => {
         if (authMode === 'login' || authMode === 'signup')  document.body.classList.add('noScroll');
@@ -81,22 +80,6 @@ function App() {
         },300);
         return () => {clearTimeout(timer);};
     },[isFilterClosing]);
-
-    useEffect(() => {
-        if (!isAuthModalClosing) return;
-        const timer = setTimeout(() => {
-            setAuthMode(null);
-            setIsAuthModalClosing(false);
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [isAuthModalClosing]);
-
-    useEffect(() => {
-        if (authMode) {
-            const timer = setTimeout(() => { setIsAnimating(true) }, 10);
-            return () => clearTimeout(timer);
-        } else setIsAnimating(false);
-    }, [authMode]);
 
     const handleSidebarClose = () => { setIsClosing(true); }
     const handleSidebarToggle = () => {
@@ -154,11 +137,7 @@ function App() {
                              filters={filters} setFilters={setFilters}/>
 
                 {authMode=== 'profile' && isLoggedIn && (
-                    <div className={`modal-backdrop ${isAuthModalClosing ? 'closing' : ''}`} onClick={() => setAuthMode(null)}>
-                        <div className={`page-content${isAnimating ? 'open' : ''} ${isAuthModalClosing ? 'closing' : ''}`} onClick={e => e.stopPropagation()}>
-                            <ProfileModal handleClose={handleAuthModalClose}/>
-                        </div>
-                    </div>
+                            <ProfileModal handleClose={() => setAuthMode(null)} mode={authMode}/>
                 )}
                 {(authMode === 'login' || authMode === 'signup' || authMode === 'reset') && !isLoggedIn && (
                     <AuthMode mode={authMode}

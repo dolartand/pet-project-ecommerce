@@ -6,6 +6,8 @@ const api = axios.create({
     withCredentials: true,
 });
 
+export const apiPublic=axios.create({baseURL: process.env.REACT_APP_API_URL});
+
 api.interceptors.request.use((config) => {
     const token = getToken();
     if (token)
