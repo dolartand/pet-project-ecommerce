@@ -34,8 +34,6 @@ function ResetPasswordModal ({onBackToLogIn}: ResetPasswordPageProps) {
         if (!validate()) return;
         apiPublic.post('/auth/forgot-password', {email})
             .then(res => {
-                // alert(res.data.message);
-                // потом поменяю на собственный компонент для сообщений
                 setError('');
                 setToken(res.data.token);
             })
@@ -53,6 +51,8 @@ function ResetPasswordModal ({onBackToLogIn}: ResetPasswordPageProps) {
         apiPublic.post('/auth/reset-password', requestBody)
             .then((res) => {
                 setSuccess(res.data.message);
+                setPassword('');
+                setConfirmPassword('');
                 setError('');
         })
         .catch(err => {
@@ -71,9 +71,10 @@ function ResetPasswordModal ({onBackToLogIn}: ResetPasswordPageProps) {
             {token && (<>
                 <label htmlFor="password" className='formLabel'>Новый пароль</label>
                 <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)}/>
-                <input type="text" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
                        placeholder="повторите пароль"/>
                 <button className='submit-btn' onClick={handleResetPassword} type='button'>Установить новый пароль</button>
+                {success && (<div className='success-msg'>{success}</div>)}
             </>)}
             <p className='forgetPassword' onClick={onBackToLogIn}>Вернуться</p>
         </form>

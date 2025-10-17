@@ -1,12 +1,23 @@
-import React from "react";
+import React, {useState} from "react";
 import {UserMultipleIcon, FilterIcon, ProductLoadingIcon, Book02Icon} from "hugeicons-react";
+import Users from "../components/layout/admin/Users";
+import Categories from "../components/layout/admin/Categories";
 
 
 function AdminPage () {
+    const [isUserOpen, setIsUserOpen] = useState<boolean>(false);
+    const [isCategoriesOpen, setIsCategoriesOpen] = useState<boolean>(false);
+    const [isGoodsOpen, setIsGoodsOpen] = useState<boolean>(false);
+    const [isOrdersOpen, setIsOrdersOpen] = useState<boolean>(false);
 
-    const onUsersClick = () => {}
+    const onUsersClick = () => {
+        setIsUserOpen(true);
+        setIsCategoriesOpen(false);};
 
-    const onCategoriesClick = () => {}
+    const onCategoriesClick = () => {
+        setIsCategoriesOpen(true);
+        setIsUserOpen(false);
+    }
 
     const onGoodsClick = () => {}
 
@@ -33,6 +44,11 @@ function AdminPage () {
                 </li>
             </ul>
         </div>
+        <main>
+            {isUserOpen ? (<Users/>)
+            : isCategoriesOpen ? (<Categories/>)
+            : null}
+        </main>
     </>)
 }
 

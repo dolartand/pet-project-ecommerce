@@ -64,16 +64,19 @@ function OrderFormModal({onClose, onOrderSuccess, isOpen}: OrderFormModalProps) 
     }
 
     const handlePostOrder = () => {
-        api.post('/orders', orderInfo)
-            .then((response) => {
-                setTimeout(() => onOrderSuccess(), 1500);
-                setError({postErr:''});
-                setSuccessMsg('Заказ успешно оформлен. Подробности заказа ищите во вкладке "История заказов"');
-            })
-            .catch(error => {
-                console.log(error);
-                setError({postErr: error.message});
-            });
+        if (orderInfo.address) {
+            api.post('/orders', orderInfo)
+                .then((response) => {
+                    setTimeout(() => onOrderSuccess(), 1500);
+                    setError({postErr:''});
+                    setSuccessMsg('Заказ успешно оформлен. Подробности заказа ищите во вкладке "История заказов"');
+                })
+                .catch(error => {
+                    console.log(error);
+                    setError({postErr: error.message});
+                });
+        } else  setError({postErr:'Для оформления заказа необходимо заполнить все поля адреса'});
+
     }
 
     return (

@@ -30,5 +30,22 @@ function Users () {
     },[])
 
     if (loading)    return <div>Loading...</div>
-}
 
+    return (<div className='users-page'>
+        {error && <p>{error}</p>}
+        {users.map(user => (
+            <div key={user.id} className='user-container'>
+                <p>ID: {user.id}</p>
+                <div className='user-info'>
+                    <p>${user.firstName} ${user.lastName}</p>
+                    <p>{user.email}</p>
+                </div>
+                <div className='account-info'>
+                    <p>Создан: {user.createdAt}</p>
+                    <p>Последнее обновление: {user.updatedAt}</p>
+                </div>
+            </div>
+        ))}
+    </div>)
+}
+export default Users;

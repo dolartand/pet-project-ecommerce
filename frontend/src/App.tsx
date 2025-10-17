@@ -45,16 +45,6 @@ function App() {
 
     const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
 
-    if (isLoggedIn && user?.role === 'ADMIN') {return <AdminPage/>}
-
-    const handleOpenLogInModal = () => {setAuthMode('login');}
-
-    const handleOpenLoginOrProfileClick = () =>{
-        if (isLoggedIn) setAuthMode('profile');
-        else
-            setAuthMode('login');
-    }
-
     useEffect(() => {
         if (authMode === 'login' || authMode === 'signup')  document.body.classList.add('noScroll');
         else    document.body.classList.remove('noScroll');
@@ -80,6 +70,16 @@ function App() {
         },300);
         return () => {clearTimeout(timer);};
     },[isFilterClosing]);
+
+    if (isLoggedIn && user?.role === 'ADMIN') {return <AdminPage/>}
+
+    const handleOpenLogInModal = () => {setAuthMode('login');}
+
+    const handleOpenLoginOrProfileClick = () =>{
+        if (isLoggedIn) setAuthMode('profile');
+        else
+            setAuthMode('login');
+    }
 
     const handleSidebarClose = () => { setIsClosing(true); }
     const handleSidebarToggle = () => {
