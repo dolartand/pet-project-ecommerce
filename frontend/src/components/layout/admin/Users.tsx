@@ -1,5 +1,7 @@
 import React, {useEffect, useState} from "react";
-import api from "axios";
+import api from "../../../api/axios";
+import '../../../styles/admin/users.css';
+import {formatDateFromArray} from "../../../utils/dateFormatter";
 
 interface User {
     id: number,
@@ -7,8 +9,8 @@ interface User {
     firstName: string,
     lastName: string,
     role: string,
-    createdAt: string,
-    updatedAt: string
+    createdAt: number[],
+    updatedAt: number[],
 }
 
 function Users () {
@@ -19,8 +21,8 @@ function Users () {
     useEffect(() => {
         api.get('/admin/users')
         .then((res) => {
-            setUsers(res.data.content);
-            alert('Got all users');
+            console.log(res);
+            setUsers(res.data.users);
         })
             .catch((err) => {
                 console.error(err);
@@ -30,19 +32,21 @@ function Users () {
     },[])
 
     if (loading)    return <div>Loading...</div>
+    if (users.length === 0) return <div>Пользователь нет.</div>;
 
     return (<div className='users-page'>
-        {error && <p>{error}</p>}
+        {error && <p className='error-msg'>{error}</p>}
         {users.map(user => (
             <div key={user.id} className='user-container'>
-                <p>ID: {user.id}</p>
                 <div className='user-info'>
+                    <p>ID: {user.id}</p>
                     <p>${user.firstName} ${user.lastName}</p>
-                    <p>{user.email}</p>
+                    <p>ROLE: {user.role}</p>
                 </div>
+                <p>Почта: {user.email}</p>
                 <div className='account-info'>
-                    <p>Создан: {user.createdAt}</p>
-                    <p>Последнее обновление: {user.updatedAt}</p>
+                    <p>Создан: {formatDateFromArray(user.createdAt)}</p>
+                    <p>Обновлен: {user.updatedAt ? formatDateFromArray(user.updatedAt): 'не был'}</p>
                 </div>
             </div>
         ))}

@@ -1,0 +1,58 @@
+.header {
+  background: linear-gradient(50deg, #176876 0%, #8BB4C7 100%);
+  margin: 0;
+  position: sticky;
+  padding: 0.6em 0;
+}
+.header ul {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.header ul li {
+  display: flex;
+  padding-left: 1.5em;
+  align-items: center;
+  flex-direction: column;
+  cursor: pointer;
+}
+.header ul li p {
+  color: white;
+  opacity: 0.5;
+  transition: opacity 200ms ease-out;
+  margin: 0;
+}
+.header ul li:hover p {
+  opacity: 1;
+}
+
+.products-page {
+  display: flex;
+  flex-direction: row;
+  gap: 0.6em;
+  color: white;
+}
+
+.products {
+  display: flex;
+  flex-direction: row;
+  gap: 0.6em;
+  color: white;
+  flex-wrap: wrap;
+}
+
+.item-container .update-btn {
+  border-radius: 0.7em;
+  border: thin solid lightblue;
+  font-size: 1em;
+  padding: 0.5em;
+  margin: 0.5em;
+  cursor: pointer;
+  color: #176876;
+  background-color: transparent;
+  transition: transform 0.5s ease;
+  width: 85%;
+}
+
+/*# sourceMappingURL=products.css.map */

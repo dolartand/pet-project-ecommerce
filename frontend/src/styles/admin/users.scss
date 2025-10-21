@@ -1,0 +1,17 @@
+@use 'common';
+
+.users-page {
+  @include common.flex-direction(row);
+  flex-wrap: wrap;
+  margin-top:0.5em;
+}
+.user-container {
+  @include common.flex-direction(column);
+  @include common.block-design;
+  width: 35%;
+}
+
+.user-info, .account-info {
+  @include common.flex-direction(row);
+  margin: 0.5em;
+}

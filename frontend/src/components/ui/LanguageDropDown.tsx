@@ -1,5 +1,5 @@
 import React, {useState, useRef, useEffect} from "react";
-import styles from '../../styles/CurrencyDropDown.module.css'
+import styles from '../../styles/LanguageDropDown.module.css'
 
 interface Languages {
     language: string;

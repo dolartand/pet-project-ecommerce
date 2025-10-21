@@ -1,0 +1,16 @@
+@use 'common';
+
+.products-page {
+  @include common.flex-direction(row);
+}
+
+.products {
+  @include common.flex-direction(row);
+  flex-wrap: wrap;
+}
+
+.item-container {
+  .update-btn {
+    @include common.btn-design(lightblue,#176876);
+  }
+}

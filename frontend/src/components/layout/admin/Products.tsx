@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
-import api from "axios";
+import api from "../../../api/axios";
+import '../../../styles/admin/products.css';
 
 interface Product {
     id?: number;
@@ -21,13 +22,13 @@ function Products () {
     const [editingProductId, setEditingProductId] = useState<number | undefined>(undefined);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<any>({});
-    const [success, setSuccess] = useState<string>('');
+    const [success, setSuccess] = useState<any>({});
 
     useEffect(() => {
         api.get(`/products`)
             .then(res => {
                 setProducts(res.data.content);
-                setError('');
+                setError({getErr:''});
             })
             .catch(err => {
                 console.log(err.message);
@@ -46,7 +47,7 @@ function Products () {
         api.post('/admin/products', product)
         .then(res => {
             setError('');
-            setSuccess('Товар добавлен успешно.');
+            setSuccess({postSuccess:'Товар добавлен успешно.'});
             setProducts(prevState => [...prevState, res.data.content]);
             handleClearFields();
         })
@@ -67,7 +68,7 @@ function Products () {
         api.put(`/admin/products/${editingProductId}`, updatedProduct)
         .then(res => {
             setError({});
-            setSuccess('Товар успешно обновлен.');
+            setSuccess({putSuccess:'Товар успешно обновлен.'});
             setEditingProductId(undefined);
         }).catch(err => {
             console.log(err.message);
@@ -98,6 +99,19 @@ function Products () {
         );
     }
 
+    const handleDeleteProduct = (productId: number) => {
+        api.delete(`/admin/products/${productId}`)
+        .then(res => {
+            setError({deleteErr:''});
+            setSuccess({deleteSuccess:'Товар успешно удален'});
+            setProducts(current => current.filter(product => product.id !== productId));
+        })
+        .catch(err => {
+            console.log(err.message);
+            setError({deleteErr:err.message});
+        })
+    }
+
     if (loading)    return <div>Loading...</div>
 
     return (<div className='products-page'>
@@ -123,6 +137,8 @@ function Products () {
                                            onChange={(e) => handleUpdateInputChange(e, product.id!)} name="available"/>
                                 </div>
                                 <button className='update-btn' onClick={() => handlePutProduct(product.id!)}>Сохранить</button>
+                                {success.putSuccess && <p className='success-msg'>{success.putSuccess}</p>}
+                                {error.putErr && <p className='error-msg'>{error.putErr}</p>}
                                 <button className='cancel-btn' onClick={()=> setEditingProductId(undefined)}>Отменить</button>
                             </>)
                         : (<>
@@ -132,6 +148,9 @@ function Products () {
                                     <p><span>{product.name}</span><span className='item-description'>  / {product.description}</span></p>
                                 </div>
                                 <button className='update-btn' onClick={()=> setEditingProductId(product.id)}>Обновить товар</button>
+                                <button className='dlete-btn' onClick={() => handleDeleteProduct(product.id!)}>Удалить товар</button>
+                                {success.deleteSuccess && <p className='success-msg'>{success.deleteSuccess}</p>}
+                                {error.deleteErr && <p className='error-msg'>{error.deleteErr}</p>}
                         </>)}
                     </div>
                 ))}
@@ -163,7 +182,7 @@ function Products () {
 
                     <button type='submit' className='submit-btn'>Добавить товар</button>
                     {error.postErr && <p className='error-msg'>{error.postErr}</p>}
-                    {success && <p className='success-msg'>{success}</p>}
+                    {success.postSuccess && <p className='success-msg'>{success.postSuccess}</p>}
                 </form>
             </div>
         </div>

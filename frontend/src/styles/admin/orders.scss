@@ -1,0 +1,40 @@
+@use 'common';
+
+.orders-page {
+  @include common.flex-direction(column);
+}
+
+.filter {
+  margin: 0.5em;
+  align-items: center;
+
+  #sort {
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: 0.7em;
+    border: thin solid lightblue;
+    font-size: 0.6em;
+    padding: 0.5em;
+    margin: 0.5em;
+    cursor: pointer;
+    color: #176876 ;
+    background-color: transparent;
+    transition: border-color 0.3s ease;
+    flex-grow: 1;
+    width: 45%;
+
+    &:focus, &:hover {
+      border-color: #8BB4C7;
+      outline: none;
+    }
+  }
+}
+
+.orders{
+  @include common.flex-direction(row);
+
+  .order-container {
+    @include common.flex-direction(row);
+    @include common.block-design;
+  }
+}

@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
-import api from "axios";
+import api from "../../../api/axios";
+import '../../../styles/admin/categories.css';
 
 interface Category {
     id: number;
@@ -73,7 +74,7 @@ function Categories () {
                     <label htmlFor="category-parentId">Родительский ID</label>
                     <input type="number" id='category-parentId' value={categoryPost.parentId}
                            onChange={handleInputChange} name="parentId"/>
-                    <button type='submit'>Создать</button>
+                    <button type='submit' className='submit-btn'>Создать</button>
                     {error && <p className='error-msg'>{error}</p>}
                     {successmsg && <p className='success-msg'>{successmsg}</p>}
                 </form>

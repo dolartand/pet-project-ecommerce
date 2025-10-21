@@ -1,0 +1,35 @@
+@use 'common';
+
+.categories-page {
+  @include common.flex-direction(row);
+  justify-content: space-around;
+}
+
+.categories, .new-category  {
+  @include common.flex-direction(column);
+  @include common.block-design;
+  margin: 1em;
+  padding: 1em;
+}
+
+.categories-list{
+  @include common.flex-direction(column);
+
+  li {
+    list-style: none;
+    padding: 0.4em;
+  }
+}
+
+.new-category {
+  width:70%;
+  .submit-btn {
+    @include common.btn-design(lightblue,#176876)
+  }
+}
+.error-msg {
+  @include common.msg(#c00);
+}
+.success-msg {
+  @include common.msg(green);
+}

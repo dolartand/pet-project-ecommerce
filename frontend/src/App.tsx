@@ -34,7 +34,7 @@ export {INITIAL_FILTERS};
 
 function App() {
     const [authMode, setAuthMode] = useState<AuthModeType>(null);
-    const {isLoggedIn, user} = useAuth();
+    const {isLoggedIn, user, logOut} = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
     const [isClosing, setIsClosing] = useState<boolean>(false);
     const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
@@ -71,7 +71,7 @@ function App() {
         return () => {clearTimeout(timer);};
     },[isFilterClosing]);
 
-    if (isLoggedIn && user?.role === 'ADMIN') {return <AdminPage/>}
+    if (isLoggedIn && user?.role === 'ADMIN') {return <AdminPage handleClose={logOut}/>}
 
     const handleOpenLogInModal = () => {setAuthMode('login');}
 
