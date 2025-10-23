@@ -123,7 +123,7 @@ class OrderServiceTest {
         Order order = new Order();
         order.setId(1L);
         order.setUser(user);
-        order.setStatus(OrderStatus.COMFIRMED);
+        order.setStatus(OrderStatus.CONFIRMED);
 
         OrderStatusUpdateRequest request = new OrderStatusUpdateRequest();
         request.setStatus(OrderStatus.SHIPPED);
@@ -138,6 +138,6 @@ class OrderServiceTest {
 
         OrderStatusChangedEvent capturedEvent = (OrderStatusChangedEvent) eventCaptor.getValue();
         assertThat(capturedEvent.getOrder().getStatus()).isEqualTo(OrderStatus.SHIPPED);
-        assertThat(capturedEvent.getOldStatus()).isEqualTo(OrderStatus.COMFIRMED);
+        assertThat(capturedEvent.getOldStatus()).isEqualTo(OrderStatus.CONFIRMED);
     }
 }

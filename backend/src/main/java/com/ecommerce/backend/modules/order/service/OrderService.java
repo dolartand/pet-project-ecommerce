@@ -171,7 +171,7 @@ public class OrderService {
         Order order = ordersRepository.findByIdAndUser(orderId, user)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
-        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.COMFIRMED) {
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CONFIRMED) {
             log.error("Cannot close order with id: {}. Invalid status: {}", orderId, order.getStatus());
             throw new BusinessException("Order cannot be closed", "ORDER_CLOSING_ERROR");
         }
@@ -180,7 +180,7 @@ public class OrderService {
         order.setStatus(OrderStatus.CANCELLED);
         Order savedOrder = ordersRepository.save(order);
 
-        OrderStatusChangedEvent event = new OrderStatusChangedEvent(savedOrder, oldStatus);
+        OrderStatusChangedEvent event = new OrderStatusChangedEvent(mapOrderToEventDto(savedOrder), oldStatus);
         eventPublisher.publish(event, RabbitConfig.ORDER_EVENTS_EXCHANGE, "order.status.changed");
 
         log.info("Successfully closed order with id: {}", orderId);
@@ -262,7 +262,7 @@ public class OrderService {
         order.setStatus(newStatus);
         Order savedOrder = ordersRepository.save(order);
 
-        OrderStatusChangedEvent event = new OrderStatusChangedEvent(savedOrder, oldStatus);
+        OrderStatusChangedEvent event = new OrderStatusChangedEvent(mapOrderToEventDto(savedOrder), oldStatus);
         eventPublisher.publish(event, RabbitConfig.ORDER_EVENTS_EXCHANGE, "order.status.changed");
 
         log.info("Admin {} successfully updated status for order with id: {} to {}", adminEmail, orderId, newStatus);
@@ -287,7 +287,7 @@ public class OrderService {
             throw new BusinessException("Order must be approved before shipping", "ORDER_CLOSING_ERROR");
         }
 
-        if (oldStatus == OrderStatus.COMFIRMED && newStatus == OrderStatus.DELIVERED) {
+        if (oldStatus == OrderStatus.CONFIRMED && newStatus == OrderStatus.DELIVERED) {
             log.error("Invalid status transition: Order must be shipped before delivering. From {} to {}", oldStatus, newStatus);
             throw new BusinessException("Order must be shipped before delivering", "ORDER_CLOSING_ERROR");
         }
@@ -331,6 +331,31 @@ public class OrderService {
                 .totalAmount(order.getTotalAmount())
                 .address(addressDto)
                 .comment(order.getComment())
+                .items(orderItemDtos)
+                .createdAt(order.getCreatedAt())
+                .updatedAt(order.getUpdatedAt())
+                .build();
+    }
+
+    private OrderEventDto mapOrderToEventDto(Order order) {
+        User user = order.getUser();
+
+        List<OrderItemDto> orderItemDtos = order.getItems().stream()
+                .map(item -> OrderItemDto.builder()
+                        .productId(item.getProductId())
+                        .productName(item.getProductName())
+                        .quantity(item.getQuantity())
+                        .priceAtTime(item.getPriceAtTime())
+                        .build()
+                )
+                .collect(Collectors.toList());
+
+        return OrderEventDto.builder()
+                .id(order.getId())
+                .userId(user.getId())
+                .userEmail(user.getEmail())
+                .status(order.getStatus())
+                .totalAmount(order.getTotalAmount())
                 .items(orderItemDtos)
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())

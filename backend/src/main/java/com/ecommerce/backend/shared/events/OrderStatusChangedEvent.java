@@ -1,5 +1,6 @@
 package com.ecommerce.backend.shared.events;
 
+import com.ecommerce.backend.modules.order.dto.OrderEventDto;
 import com.ecommerce.backend.modules.order.entity.Order;
 import com.ecommerce.backend.modules.order.entity.OrderStatus;
 import lombok.Getter;
@@ -11,10 +12,10 @@ import lombok.Setter;
 @NoArgsConstructor
 public class OrderStatusChangedEvent extends BaseEvent {
 
-    private Order order;
+    private OrderEventDto order;
     private OrderStatus oldStatus;
 
-    public OrderStatusChangedEvent(Order order, OrderStatus olStatus) {
+    public OrderStatusChangedEvent(OrderEventDto order, OrderStatus olStatus) {
         super(order.getId().toString());
         this.order = order;
         this.oldStatus = olStatus;

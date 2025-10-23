@@ -1,6 +1,7 @@
 package com.ecommerce.backend.modules.inventory.service;
 
 import com.ecommerce.backend.config.RabbitConfig;
+import com.ecommerce.backend.modules.order.dto.OrderEventDto;
 import com.ecommerce.backend.modules.order.entity.Order;
 import com.ecommerce.backend.modules.order.entity.OrderStatus;
 import com.ecommerce.backend.shared.events.BaseEvent;
@@ -73,9 +74,9 @@ public class InventoryEventListener {
         }
     }
 
-    private void processOrderStatusChange(Order order) {
+    private void processOrderStatusChange(OrderEventDto order) {
         log.info("Processing order status change for order id: {}. New status: {}", order.getId(), order.getStatus());
-        String userEmail = order.getUser().getEmail();
+        String userEmail = order.getUserEmail();
         if (order.getStatus() == OrderStatus.CANCELLED) {
             log.info("Cancelling reservation for order id: {}", order.getId());
             inventoryService.cancelReservation(order.getId(), userEmail);

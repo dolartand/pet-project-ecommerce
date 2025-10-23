@@ -2,7 +2,7 @@ package com.ecommerce.backend.modules.order.entity;
 
 public enum OrderStatus {
     PENDING,
-    COMFIRMED,
+    CONFIRMED,
     SHIPPED,
     DELIVERED,
     CANCELLED
