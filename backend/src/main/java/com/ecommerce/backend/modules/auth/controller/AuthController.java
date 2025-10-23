@@ -44,7 +44,7 @@ public class AuthController {
         AuthResponseWrapper<LoginResponse> wrapper = authService.login(request);
         ResponseCookie cookie = ResponseCookie.from("refreshToken", wrapper.getRefreshToken())
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)
                 .path("/")
                 .maxAge(60 * 60 * 24 * 7)
                 .build();
@@ -56,8 +56,11 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<RefreshTokenResponse> refreshToken(@CookieValue(name = "refreshToken") String refreshToken) {
+    public ResponseEntity<RefreshTokenResponse> refreshToken(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
         log.info("Refreshing token");
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         AuthResponseWrapper<RefreshTokenResponse> wrapper = authService.refreshToken(refreshToken);
         ResponseCookie cookie = ResponseCookie.from("refreshToken", wrapper.getRefreshToken())
                 .httpOnly(true)

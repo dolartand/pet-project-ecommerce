@@ -2,6 +2,18 @@
 
 .products-page {
   @include common.flex-direction(row);
+  justify-content: space-around;
+  align-items: flex-start;
+  p {
+    color: #176876;
+  }
+  .error-msg {
+    @include common.msg(#c00);
+  }
+  .success-msg {
+    @include common.msg(green);
+  }
+
 }
 
 .products {
@@ -10,7 +22,34 @@
 }
 
 .item-container {
+  .delete-btn {
+    @include common.btn-design(firebrick, #CF0000);
+    width: 95%;
+  }
   .update-btn {
     @include common.btn-design(lightblue,#176876);
+    width: 95%;
+
+    &:hover {
+      transform: scale(1.01);
+    }
+  }
+}
+
+.new-product {
+  @include common.flex-direction(column);
+  @include common.block-design;
+  width:50%;
+  max-width: 30em;
+  form {
+    width: 95%;
+  }
+  box-sizing: border-box;
+  margin: 1em;
+  padding: 1em;
+
+  .submit-btn {
+    @include common.btn-design(#176876, #176876);
+    width: 95%;
   }
 }

@@ -1,3 +1,15 @@
+.error-msg {
+  margin-bottom: 0.5em;
+  color: #c00;
+  font-size: 0.95em;
+}
+
+.success-msg {
+  margin-bottom: 0.5em;
+  color: green;
+  font-size: 0.95em;
+}
+
 .header {
   background: linear-gradient(50deg, #176876 0%, #8BB4C7 100%);
   margin: 0;
@@ -27,6 +39,23 @@
   opacity: 1;
 }
 
+.products-page, .categories-page, .users-page, .orders-page {
+  overflow: hidden;
+}
+
+.admin-page {
+  height: calc(100vh - 9em);
+  overflow-y: auto;
+}
+
+.checkbox-container, .product-quantity {
+  display: flex;
+  flex-direction: row;
+  gap: 0.6em;
+  color: white;
+  align-items: center;
+}
+
 .orders-page {
   display: flex;
   flex-direction: column;
@@ -35,15 +64,17 @@
 }
 
 .filter {
+  display: flex;
   margin: 0.5em;
   align-items: center;
+  justify-content: center;
 }
 .filter #sort {
   appearance: none;
   -webkit-appearance: none;
   border-radius: 0.7em;
   border: thin solid lightblue;
-  font-size: 0.6em;
+  font-size: 0.8em;
   padding: 0.5em;
   margin: 0.5em;
   cursor: pointer;
@@ -70,8 +101,24 @@
   gap: 0.6em;
   color: white;
   background: rgba(139, 180, 200, 0.7);
-  box-shadow: 0 4px 12px rgba(139, 180, 200, 0.1);
+  box-shadow: 0 4px 12px rgba(139, 180, 198, 0.1);
   border-radius: 0.8em;
+}
+.orders .update-btn {
+  border-radius: 0.7em;
+  border: thin solid #176876;
+  font-size: 1em;
+  padding: 0.5em;
+  margin: 0.5em;
+  cursor: pointer;
+  color: #176876;
+  background-color: transparent;
+  transition: transform 0.5s ease;
+  width: 85%;
+  opacity: 1;
+}
+.orders .update-btn[disabled] {
+  opacity: 0.5;
 }
 
 /*# sourceMappingURL=orders.css.map */

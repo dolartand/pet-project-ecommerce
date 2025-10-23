@@ -132,9 +132,11 @@ function Products () {
                                     <label htmlFor="price">Цена товара:</label>
                                     <input type="number" id='price' value={product.price}
                                            onChange={(e) => handleUpdateInputChange(e, product.id!)} name='price'/>
-                                    <label htmlFor="available">Доступен сейчас</label>
-                                    <input type="checkbox" className='available'
-                                           onChange={(e) => handleUpdateInputChange(e, product.id!)} name="available"/>
+                                    <div className='checkbox-container'>
+                                        <label htmlFor="available">Доступен сейчас</label>
+                                        <input type="checkbox" className='available'
+                                               onChange={(e) => handleUpdateInputChange(e, product.id!)} name="available"/>
+                                    </div>
                                 </div>
                                 <button className='update-btn' onClick={() => handlePutProduct(product.id!)}>Сохранить</button>
                                 {success.putSuccess && <p className='success-msg'>{success.putSuccess}</p>}
@@ -145,10 +147,10 @@ function Products () {
                                 <img src={product.imageUrl} alt="фото"/>
                                 <div className='item-content'>
                                     <p className='item-price'>{product.price} BYN</p>
-                                    <p><span>{product.name}</span><span className='item-description'>  / {product.description}</span></p>
+                                    <p>{product.name}<span className='item-description'>  / {product.description}</span></p>
                                 </div>
                                 <button className='update-btn' onClick={()=> setEditingProductId(product.id)}>Обновить товар</button>
-                                <button className='dlete-btn' onClick={() => handleDeleteProduct(product.id!)}>Удалить товар</button>
+                                <button className='delete-btn' onClick={() => handleDeleteProduct(product.id!)}>Удалить товар</button>
                                 {success.deleteSuccess && <p className='success-msg'>{success.deleteSuccess}</p>}
                                 {error.deleteErr && <p className='error-msg'>{error.deleteErr}</p>}
                         </>)}
@@ -174,19 +176,21 @@ function Products () {
                     <label htmlFor="product-imageUrl">Ссылка на изображение</label>
                     <input type="text" id='product-imageUrl' value={product.imageUrl}
                            onChange={handleInputChange} name="imageUrl"/>
-                    <label htmlFor="product-available">Доступен сейчас</label>
-                    <input type="checkbox" className='product-available' onChange={handleInputChange} name="available" checked={product.available}/>
-                    <label htmlFor="product-initial-quantity">Начальное количество товара</label>
-                    <input type="number" id='product-initial-quantity' value={product.initialQuantity}
-                           onChange={handleInputChange} name="initialQuantity"/>
-
+                    <div className='checkbox-container'>
+                        <label htmlFor="product-available">Доступен сейчас</label>
+                        <input type="checkbox" className='product-available' onChange={handleInputChange} name="available" checked={product.available}/>
+                    </div>
+                    <div className='product-quantity'>
+                        <label htmlFor="product-initial-quantity">Начальное количество товара</label>
+                        <input type="number" id='product-initial-quantity' value={product.initialQuantity}
+                               onChange={handleInputChange} name="initialQuantity"/>
+                    </div>
                     <button type='submit' className='submit-btn'>Добавить товар</button>
                     {error.postErr && <p className='error-msg'>{error.postErr}</p>}
                     {success.postSuccess && <p className='success-msg'>{success.postSuccess}</p>}
                 </form>
             </div>
         </div>
-
     )
 }
 export default Products;

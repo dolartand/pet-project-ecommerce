@@ -15,6 +15,28 @@ function AdminPage ({handleClose}: AdminPageProps) {
     const [isCategoriesOpen, setIsCategoriesOpen] = useState<boolean>(false);
     const [isGoodsOpen, setIsGoodsOpen] = useState<boolean>(false);
     const [isOrdersOpen, setIsOrdersOpen] = useState<boolean>(false);
+    const [activeTab, setActiveTab] = useState<string>('products');
+    const [refreshKey, setRefreshKey] = useState<number>(0);
+
+    const handleTabClick = (tabName: string) => {
+        setActiveTab(tabName);
+        setRefreshKey(prevKey => prevKey + 1);
+    };
+
+    const renderActiveComponent = () => {
+        switch (activeTab) {
+            case 'users':
+                return <Users key={refreshKey} />;
+            case 'categories':
+                return <Categories key={refreshKey} />;
+            case 'products':
+                return <Products key={refreshKey} />;
+            case 'orders':
+                return <Orders key={refreshKey} />;
+            default:
+                return <Products key={refreshKey} />;
+        }
+    }
 
     const onUsersClick = () => {
         setIsUserOpen(true);
@@ -47,17 +69,17 @@ function AdminPage ({handleClose}: AdminPageProps) {
     return (<>
         <div className='header hide-mobile'>
             <ul>
-                <li className='simple-menu' onClick={onUsersClick}>
+                <li className='simple-menu' onClick={() => handleTabClick('users')}>
                     <UserMultipleIcon color='#ffffff' size={42}/>
                     <p>Пользователи</p></li>
-                <li className='simple-menu' onClick={onCategoriesClick}>
+                <li className='simple-menu' onClick={()=> handleTabClick('categories')}>
                     <FilterIcon color='#ffffff' size={42}/>
                     <p>Категории</p></li>
-                <li className='simple-menu' onClick={onGoodsClick}>
+                <li className='simple-menu' onClick={() => handleTabClick('products')}>
                     <ProductLoadingIcon color='#ffffff' size={42}/>
                     <p>Товары</p>
                 </li>
-                <li className='simple-menu' onClick={onOrdersClick}>
+                <li className='simple-menu' onClick={() => handleTabClick('orders')}>
                     <Book02Icon color='#ffffff' size={42}/>
                     <p>Заказы</p>
                 </li>
@@ -67,12 +89,8 @@ function AdminPage ({handleClose}: AdminPageProps) {
                 </li>
             </ul>
         </div>
-        <main>
-            {isUserOpen ? (<Users/>)
-            : isCategoriesOpen ? (<Categories/>)
-            : isGoodsOpen ? (<Products/>)
-            : isOrdersOpen ? (<Orders/>)
-            : <Products/>}
+        <main className='admin-page'>
+            {renderActiveComponent()}
         </main>
     </>)
 }

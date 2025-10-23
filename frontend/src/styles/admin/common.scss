@@ -6,7 +6,7 @@
 }
 @mixin block-design () {
   background: rgba(139,180,200, 0.7);
-  box-shadow: 0 4px 12px rgba(139,180,200, 0.1);
+  box-shadow: 0 4px 12px rgba(139,180,198, 0.1);
   border-radius: 0.8em;
 }
 
@@ -29,8 +29,11 @@
   font-size: 0.95em;
 }
 
-@mixin text {
-
+.error-msg {
+  @include msg(#c00);
+}
+.success-msg {
+  @include msg(green);
 }
 
 .header {
@@ -64,4 +67,16 @@
       }
     }
   }
+}
+.products-page, .categories-page, .users-page, .orders-page {
+  overflow: hidden;
+}
+
+.admin-page {
+  height: calc(100vh - 9em);
+  overflow-y: auto;
+}
+.checkbox-container, .product-quantity {
+  @include flex-direction(row);
+  align-items: center;
 }

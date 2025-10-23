@@ -136,7 +136,7 @@ function Orders() {
                             </>)
                         : (<>
                                 <p className='order-status'>Статус: {order.orderStatus}</p>
-                                <button className='handleChangeStatus' onClick={()=> setOrderStatusId(order.id)} disabled={order.orderStatus === 'CANCELLED'}>Изменить статус</button>
+                                <button className='update-btn' onClick={()=> setOrderStatusId(order.id)} disabled={order.orderStatus === 'CANCELLED'}>Изменить статус</button>
                             </>)
                         }
                     </div>

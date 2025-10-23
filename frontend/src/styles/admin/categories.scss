@@ -3,6 +3,7 @@
 .categories-page {
   @include common.flex-direction(row);
   justify-content: space-around;
+  align-items: flex-start;
 }
 
 .categories, .new-category  {
@@ -22,14 +23,16 @@
 }
 
 .new-category {
-  width:70%;
-  .submit-btn {
-    @include common.btn-design(lightblue,#176876)
+  width:50%;
+  max-width: 45em;
+  form {
+    width: 95%;
   }
-}
-.error-msg {
-  @include common.msg(#c00);
-}
-.success-msg {
-  @include common.msg(green);
+  .submit-btn {
+    @include common.btn-design(#176876,#176876);
+    width: 20%;
+    box-sizing: border-box;
+    margin-left: 0;
+    margin-right: 0;
+  }
 }

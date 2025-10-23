@@ -5,15 +5,17 @@
 }
 
 .filter {
+  display: flex;
   margin: 0.5em;
   align-items: center;
+  justify-content: center;
 
   #sort {
     appearance: none;
     -webkit-appearance: none;
     border-radius: 0.7em;
     border: thin solid lightblue;
-    font-size: 0.6em;
+    font-size: 0.8em;
     padding: 0.5em;
     margin: 0.5em;
     cursor: pointer;
@@ -36,5 +38,12 @@
   .order-container {
     @include common.flex-direction(row);
     @include common.block-design;
+  }
+  .update-btn {
+    @include common.btn-design(#176876,#176876);
+    opacity: 1;
+  }
+  .update-btn[disabled] {
+    opacity: 0.5;
   }
 }

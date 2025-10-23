@@ -1,3 +1,15 @@
+.error-msg {
+  margin-bottom: 0.5em;
+  color: #c00;
+  font-size: 0.95em;
+}
+
+.success-msg {
+  margin-bottom: 0.5em;
+  color: green;
+  font-size: 0.95em;
+}
+
 .header {
   background: linear-gradient(50deg, #176876 0%, #8BB4C7 100%);
   margin: 0;
@@ -27,12 +39,30 @@
   opacity: 1;
 }
 
+.products-page, .categories-page, .users-page, .orders-page {
+  overflow: hidden;
+}
+
+.admin-page {
+  height: calc(100vh - 9em);
+  overflow-y: auto;
+}
+
+.checkbox-container, .product-quantity {
+  display: flex;
+  flex-direction: row;
+  gap: 0.6em;
+  color: white;
+  align-items: center;
+}
+
 .categories-page {
   display: flex;
   flex-direction: row;
   gap: 0.6em;
   color: white;
   justify-content: space-around;
+  align-items: flex-start;
 }
 
 .categories, .new-category {
@@ -41,7 +71,7 @@
   gap: 0.6em;
   color: white;
   background: rgba(139, 180, 200, 0.7);
-  box-shadow: 0 4px 12px rgba(139, 180, 200, 0.1);
+  box-shadow: 0 4px 12px rgba(139, 180, 198, 0.1);
   border-radius: 0.8em;
   margin: 1em;
   padding: 1em;
@@ -59,11 +89,15 @@
 }
 
 .new-category {
-  width: 70%;
+  width: 50%;
+  max-width: 45em;
+}
+.new-category form {
+  width: 95%;
 }
 .new-category .submit-btn {
   border-radius: 0.7em;
-  border: thin solid lightblue;
+  border: thin solid #176876;
   font-size: 1em;
   padding: 0.5em;
   margin: 0.5em;
@@ -72,18 +106,10 @@
   background-color: transparent;
   transition: transform 0.5s ease;
   width: 85%;
-}
-
-.error-msg {
-  margin-bottom: 0.5em;
-  color: #c00;
-  font-size: 0.95em;
-}
-
-.success-msg {
-  margin-bottom: 0.5em;
-  color: green;
-  font-size: 0.95em;
+  width: 20%;
+  box-sizing: border-box;
+  margin-left: 0;
+  margin-right: 0;
 }
 
 /*# sourceMappingURL=categories.css.map */

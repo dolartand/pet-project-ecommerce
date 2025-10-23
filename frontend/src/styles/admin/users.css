@@ -1,3 +1,15 @@
+.error-msg {
+  margin-bottom: 0.5em;
+  color: #c00;
+  font-size: 0.95em;
+}
+
+.success-msg {
+  margin-bottom: 0.5em;
+  color: green;
+  font-size: 0.95em;
+}
+
 .header {
   background: linear-gradient(50deg, #176876 0%, #8BB4C7 100%);
   margin: 0;
@@ -27,6 +39,23 @@
   opacity: 1;
 }
 
+.products-page, .categories-page, .users-page, .orders-page {
+  overflow: hidden;
+}
+
+.admin-page {
+  height: calc(100vh - 9em);
+  overflow-y: auto;
+}
+
+.checkbox-container, .product-quantity {
+  display: flex;
+  flex-direction: row;
+  gap: 0.6em;
+  color: white;
+  align-items: center;
+}
+
 .users-page {
   display: flex;
   flex-direction: row;
@@ -34,6 +63,7 @@
   color: white;
   flex-wrap: wrap;
   margin-top: 0.5em;
+  padding: 0.7em;
 }
 
 .user-container {
@@ -42,9 +72,10 @@
   gap: 0.6em;
   color: white;
   background: rgba(139, 180, 200, 0.7);
-  box-shadow: 0 4px 12px rgba(139, 180, 200, 0.1);
+  box-shadow: 0 4px 12px rgba(139, 180, 198, 0.1);
   border-radius: 0.8em;
-  width: 35%;
+  justify-content: space-around;
+  width: 30%;
 }
 
 .user-info, .account-info {
