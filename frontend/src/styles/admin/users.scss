@@ -1,19 +1,22 @@
 @use 'common';
 
 .users-page {
-  @include common.flex-direction(row);
-  flex-wrap: wrap;
+  @include common.flex-direction(column);
   margin-top:0.5em;
   padding:0.7em;
+  color: #176876;
+  margin-left: 0.5em;
+  .user-cell {flex-basis: 10%};
+  .user-cell-client {flex-basis: 25%};
+  .user-cell-email {flex-basis: 20%};
+  .user-cell-role {flex-basis: 15%};
+  .user-cell-date {flex-basis: 15%};
+  .user-cell-update {flex-basis: 15%};
+
+  .users-header {@include common.flex-direction(row);}
+  .users {@include common.flex-direction(column);}
 }
 .user-container {
-  @include common.flex-direction(column);
-  @include common.block-design;
-  justify-content: space-around;
-  width: 30%;
-}
-
-.user-info, .account-info {
   @include common.flex-direction(row);
-  margin: 0.5em;
+  border-bottom: 1px solid #e0e0e0;
 }

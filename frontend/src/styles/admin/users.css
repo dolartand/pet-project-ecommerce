@@ -52,38 +52,52 @@
   display: flex;
   flex-direction: row;
   gap: 0.6em;
-  color: white;
   align-items: center;
 }
 
 .users-page {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 0.6em;
-  color: white;
-  flex-wrap: wrap;
   margin-top: 0.5em;
   padding: 0.7em;
+  color: #176876;
+  margin-left: 0.5em;
+}
+.users-page .user-cell {
+  flex-basis: 10%;
+}
+.users-page .user-cell-client {
+  flex-basis: 25%;
+}
+.users-page .user-cell-email {
+  flex-basis: 20%;
+}
+.users-page .user-cell-role {
+  flex-basis: 15%;
+}
+.users-page .user-cell-date {
+  flex-basis: 15%;
+}
+.users-page .user-cell-update {
+  flex-basis: 15%;
+}
+.users-page .users-header {
+  display: flex;
+  flex-direction: row;
+  gap: 0.6em;
+}
+.users-page .users {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
 }
 
 .user-container {
   display: flex;
-  flex-direction: column;
-  gap: 0.6em;
-  color: white;
-  background: rgba(139, 180, 200, 0.7);
-  box-shadow: 0 4px 12px rgba(139, 180, 198, 0.1);
-  border-radius: 0.8em;
-  justify-content: space-around;
-  width: 30%;
-}
-
-.user-info, .account-info {
-  display: flex;
   flex-direction: row;
   gap: 0.6em;
-  color: white;
-  margin: 0.5em;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 /*# sourceMappingURL=users.css.map */

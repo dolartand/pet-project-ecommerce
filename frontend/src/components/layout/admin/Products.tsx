@@ -180,11 +180,9 @@ function Products () {
                         <label htmlFor="product-available">Доступен сейчас</label>
                         <input type="checkbox" className='product-available' onChange={handleInputChange} name="available" checked={product.available}/>
                     </div>
-                    <div className='product-quantity'>
-                        <label htmlFor="product-initial-quantity">Начальное количество товара</label>
-                        <input type="number" id='product-initial-quantity' value={product.initialQuantity}
+                    <label htmlFor="product-initial-quantity">Начальное количество товара</label>
+                    <input type="number" id='product-initial-quantity' value={product.initialQuantity}
                                onChange={handleInputChange} name="initialQuantity"/>
-                    </div>
                     <button type='submit' className='submit-btn'>Добавить товар</button>
                     {error.postErr && <p className='error-msg'>{error.postErr}</p>}
                     {success.postSuccess && <p className='success-msg'>{success.postSuccess}</p>}

@@ -199,3 +199,4 @@ input:hover, input:focus {
     transition: transform 0.5s ease;
     width: 95%;
 }
+button[disabled]{opacity: 0.5;}

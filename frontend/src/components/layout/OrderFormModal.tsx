@@ -22,8 +22,7 @@ function OrderFormModal({onClose, onOrderSuccess, isOpen}: OrderFormModalProps) 
     const [orderInfo, setOrderInfo] = useState<OrderInfo>({
         address: {shippingStreet: '', shippingCity: '', shippingPostalCode: ''},
         comment: ''});
-    const [error, setError] = useState<any>({});
-    const [isClosing, setIsClosing] = useState<boolean>(false);
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});    const [isClosing, setIsClosing] = useState<boolean>(false);
     const [successMsg, setSuccessMsg] = useState<string>('');
     const [isAnimating, setIsAnimating] = useState<boolean>(false);
 
@@ -47,6 +46,15 @@ function OrderFormModal({onClose, onOrderSuccess, isOpen}: OrderFormModalProps) 
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value} = event.target;
+
+        if (errors[name]) {
+            setErrors(prevErrors => {
+                const newErrors = { ...prevErrors };
+                delete newErrors[name];
+                return newErrors;
+            });
+        }
+
         if (name === 'shippingStreet' || name === 'shippingCity' || name === 'shippingPostalCode') {
             setOrderInfo(prevState => ({
                 ...prevState,
@@ -63,21 +71,44 @@ function OrderFormModal({onClose, onOrderSuccess, isOpen}: OrderFormModalProps) 
         }
     }
 
+    const validateForm = (): boolean => {
+        const newErrors: { [key: string]: string } = {};
+        const { shippingStreet, shippingCity, shippingPostalCode } = orderInfo.address;
+
+        if (!shippingStreet.trim()) {
+            newErrors.shippingStreet = 'Укажите улицу и дом';
+        }
+        if (!shippingCity.trim()) {
+            newErrors.shippingCity = 'Укажите город';
+        }
+        if (!shippingPostalCode.trim()) {
+            newErrors.shippingPostalCode = 'Укажите почтовый индекс';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    }
+
     const handlePostOrder = () => {
-        if (orderInfo.address) {
-            api.post('/orders', orderInfo)
-                .then((response) => {
-                    setTimeout(() => onOrderSuccess(), 1500);
-                    setError({postErr:''});
-                    setSuccessMsg('Заказ успешно оформлен. Подробности заказа ищите во вкладке "История заказов"');
-                })
-                .catch(error => {
-                    console.log(error);
-                    setError({postErr: error.message});
-                });
-        } else  setError({postErr:'Для оформления заказа необходимо заполнить все поля адреса'});
+        setSuccessMsg('');
+        if (!validateForm()) {
+            return;
+        }
+
+        api.post('/orders', orderInfo)
+            .then((response) => {
+                setTimeout(() => onOrderSuccess(), 1500);
+                setErrors({});
+                setSuccessMsg('Заказ успешно оформлен. Подробности заказа ищите во вкладке "История заказов"');
+            })
+            .catch(error => {
+                console.log(error);
+                setErrors({postErr: error.message || 'Не удалось оформить заказ.'});
+            });
 
     }
+    const isSubmitDisabled = !orderInfo.address.shippingStreet || !orderInfo.address.shippingCity ||
+        !orderInfo.address.shippingPostalCode;
 
     return (
         <div className={`modal-backdrop${isClosing ? ' closing' : ''}`} onClick={handleClose}>
@@ -87,18 +118,21 @@ function OrderFormModal({onClose, onOrderSuccess, isOpen}: OrderFormModalProps) 
                 <label htmlFor="street" className='street'> Адрес доставки</label>
                 <input type="text" id="street" value={orderInfo.address.shippingStreet}
                     onChange={handleInputChange} name="shippingStreet" />
+                {errors.shippingStreet && (<div className='error-msg'>{errors.shippingStreet}</div>)}
                 <label htmlFor="city" className='city'>Город доставки</label>
                 <input type="text" id='city' value={orderInfo.address.shippingCity}
                     onChange={handleInputChange} name="shippingCity" />
+                {errors.shippingCity && (<div className='error-msg'>{errors.shippingCity}</div>)}
                 <label htmlFor="postalCode" className='postalCode'>Почтовый индекс</label>
                 <input type="text" id="postalCode" value={orderInfo.address.shippingPostalCode}
                     onChange={handleInputChange} name="shippingPostalCode" />
+                {errors.shippingPostalCode && (<div className='error-msg'>{errors.shippingPostalCode}</div>)}
                 <label htmlFor="comment" className='comment'>Комментарий к заказу</label>
                 <input type="text" id='comment' value={orderInfo.comment}
                     onChange={handleInputChange} name="comment" />
-                <button type='button' className='submit-btn' onClick={handlePostOrder}>Оформить заказ</button>
-                {error.postErr && (<div className='error-msg'>{error.postErr}</div>)}
-                {!error.postErr && (<p className='success-msg'>{successMsg}</p>)}
+                <button type='button' className='submit-btn' onClick={handlePostOrder} disabled={isSubmitDisabled}>Оформить заказ</button>
+                {errors.postErr && (<div className='error-msg'>{errors.postErr}</div>)}
+                {successMsg && !Object.keys(errors).length && (<p className='success-msg'>{successMsg}</p>)}
             </div>
         </div>
     )

@@ -2,11 +2,13 @@ import React, {useEffect, useState} from "react";
 import api from "../../../api/axios";
 import {formatDateFromArray} from "../../../utils/dateFormatter";
 import '../../../styles/admin/orders.css';
+import OrderDetailsPanel from "./OrderDetailsPanel";
 
 interface Item {
     productId: number;
     productName: string;
     quantity: number;
+    priceAtTime: number;
 }
 
 interface address {
@@ -31,16 +33,13 @@ interface Order {
 type Filter = 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | null;
 
 function Orders() {
-    const [orders, setOrders] = useState<Order[]>([{id:0, userId:0, userEmail: '', orderStatus: '', totalAmount:0, items:[], address: {
-            shippingStreet: '', shippingCity: '', shippingPostalCode: 0,
-        },comment:'', updatedAt:[],createdAt:[]}]);
+    const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<any>({});
     const [filterStr, setFilterStr] = useState<Filter>(null);
-    const [editingStatus, setEditingStatus] = useState<Filter>(null);
-    const [orderStatusId, setOrderStatusId] = useState<number | undefined>(undefined);
-    const [success, setSuccess] = useState<string>('');
-
+    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+    const [isAnimating, setIsAnimating] = useState<boolean>(false);
+    const [isClosing, setIsClosing] = useState(false);
 
     useEffect(()=>{
         api.get('/admin/orders',{params: {status:filterStr}})
@@ -56,93 +55,83 @@ function Orders() {
             .finally(()=>setLoading(false));
     }, [filterStr]);
 
-    const handlePutOrderStatus = (id: number) => {
-        const updatedOrder = orders.find(order => order.id === id);
-        if (!updatedOrder) {
-            setError({ putErr: 'Не удалось найти заказ для обновления.' });
-            return;
-        }
+    useEffect(() => {
+        if (selectedOrderId) {
+            const timer = setTimeout(()=>{setIsAnimating(true)},10);
+            return () => clearTimeout(timer);
+        } else  setIsAnimating(false);
+    },[selectedOrderId]);
 
-        api.put(`/admin/orders/${orderStatusId}`, {status:editingStatus})
-            .then(res => {
-                setError({});
-                setSuccess('Статус успешно обновлен.');
-                setOrders(currentOrders =>
-                    currentOrders.map(o => o.id === id ? { ...o, status: editingStatus! } : o)
-                );
-                setOrderStatusId(undefined);
-            }).catch(err => {
-            console.log(err.message);
-            setError({putErr:err.message});
-        })
+    useEffect(()=>{
+        if (!isClosing) return;
+        const timer = setTimeout(()=>{
+            setIsClosing(false);
+            setSelectedOrderId(null);
+        },300);
+        return () => {clearTimeout(timer);};
+    },[isClosing]);
+
+    const handleOrderStatusUpdate = (orderId: number, newStatus:string) => {
+        setOrders(currentOrder =>
+        currentOrder.map(order => {
+            if (order.id === orderId)   return {...order, orderStatus: newStatus};
+            return order;
+        }))
     }
 
-    const handleSaveChange = (idOrder: number) => {
-        handlePutOrderStatus(idOrder);
-        setOrderStatusId(undefined);
+    const handleToggleOpenOrder = (id: number) => {
+        if (selectedOrderId === id) {handleCloseDetailsPanel()}
+        else    setSelectedOrderId(id);
     }
+    const handleCloseDetailsPanel = () => {setIsClosing(true);}
 
     if (loading)    return <div>Loading...</div>
-    if (orders.length === 0) return <div>Заказов нет.</div>
+    if (!loading && orders.length === 0) return <div>Заказов нет.</div>
+
+    const selectedOrder = orders.find(o => o.id === selectedOrderId);
 
     return (<div className='orders-page'>
-        <div className='filter'>
-            <label htmlFor="sort">Показать заказы с статусом</label>
-            <select name="sort" id="sort" value={filterStr ?? 'DELIVERED'}
-                    onChange={e=>setFilterStr(e.target.value as Filter)}>
-                <option value="PENDING">PENDING</option>
-                <option value="CONFIRMED">CONFIRMED</option>
-                <option value="SHIPPED">SHIPPED</option>
-                <option value="DELIVERED">DELIVERED</option>
-                <option value="CANCELLED">CANCELLED</option>
-            </select>
-        </div>
-        <div className='orders'>
+        <div className='orders-list-container '>
+            <div className='filter'>
+                <label htmlFor="sort">Показать заказы с статусом</label>
+                <select name="sort" id="sort" value={filterStr ?? ''}
+                        onChange={e=>setFilterStr(e.target.value as Filter)}>
+                    <option value=''>ALL</option>
+                    <option value="PENDING">PENDING</option>
+                    <option value="CONFIRMED">CONFIRMED</option>
+                    <option value="SHIPPED">SHIPPED</option>
+                    <option value="DELIVERED">DELIVERED</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                </select>
+            </div>
+
             {error.getErr && <p className='error-msg'>{error.getErr}</p>}
-            {orders.map(order => (
-                <div key={order.id} className='order-container'>
-                    <div className='order-date'>
-                        <p>ID: {order.id}</p>
-                        <p>Создан: {formatDateFromArray(order.createdAt)}</p>
-                        <p>Обновлен: {formatDateFromArray(order.updatedAt)}</p>
-                    </div>
-                    <div className='main-info'>
-                        <p>Клиент: {order.userId} - {order.userEmail}</p>
-                        <p>Комментарий к заказу: {order.comment}</p>
-                        <p className='total-amount'>Стоимость: {order.totalAmount}</p>
-                    </div>
-                    <div className='items'>
-                        <p>Товары:</p>
-                        {order.items.map(item => (
-                            <p className='item-info'>{item.productName} - {item.quantity} шт.</p>
-                        ))}
-                        <h4 className='order-address'>Адрес заказа: {order.address.shippingStreet}, {order.address.shippingCity}, {order.address.shippingPostalCode}</h4>
-                    </div>
-                    <div>
-                        {order.id === orderStatusId ? (<>
-                                <label htmlFor="sort">Статус заказа: </label>
-                                <select name="sort" id="sort" value={editingStatus ?? 'DELIVERED'}
-                                        onChange={e=>setEditingStatus(e.target.value as Filter)}>
-                                    <option value="PENDING">PENDING</option>
-                                    <option value="CONFIRMED">CONFIRMED</option>
-                                    <option value="SHIPPED">SHIPPED</option>
-                                    <option value="DELIVERED">DELIVERED</option>
-                                    <option value="CANCELLED">CANCELLED</option>
-                                </select>
-                                <button className='update-btn' onClick={() => handleSaveChange(order.id)}>Сохранить</button>
-                                <button className='cancel-btn' onClick={()=> setOrderStatusId(undefined)}>Отменить</button>
-                                {success && <p className='success-msg'>{success}</p>}
-                                {error.deleteErr && <p className='error-msg'>{error.deleteErr}</p>}
-                            </>)
-                        : (<>
-                                <p className='order-status'>Статус: {order.orderStatus}</p>
-                                <button className='update-btn' onClick={()=> setOrderStatusId(order.id)} disabled={order.orderStatus === 'CANCELLED'}>Изменить статус</button>
-                            </>)
-                        }
-                    </div>
+
+            <div className='orders-table'>
+                <div className='order-header'>
+                    <p className='order-cell'>Заказ</p>
+                    <p className='order-cell-client'>Клиент</p>
+                    <p className='order-cell-status'>Статус</p>
+                    <p className='order-cell-total'>Итого</p>
+                    <p className='order-cell-date'>Дата</p>
                 </div>
-            ))}
+                {orders.map(order => (
+                    <div key={order.id} className={`order-row ${order.id === selectedOrderId ? 'active' : ''}`}
+                         onClick={() => handleToggleOpenOrder(order.id)}>
+                        <p className='order-cell'>#{order.id}</p>
+                        <p className='order-cell-client'>{order.userEmail}</p>
+                        <div className='order-cell-status'>
+                            <span className={`status-badge status-${order.orderStatus.toLowerCase()}`}>{order.orderStatus}</span>
+                        </div>
+                        <p className='order-cell-total'>{order.totalAmount.toFixed(2)} BYN</p>
+                        <p className='order-cell-date'>{formatDateFromArray(order.createdAt)}</p>
+                    </div>
+                ))}
+            </div>
         </div>
+        {selectedOrder && (<OrderDetailsPanel onClose={handleCloseDetailsPanel}
+        order={selectedOrder} onStatusUpdate={handleOrderStatusUpdate}
+                                              isClosing={isClosing} isAnimating={isAnimating}/>)}
     </div>)
 }
 

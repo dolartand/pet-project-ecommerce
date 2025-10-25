@@ -36,20 +36,26 @@ function Users () {
 
     return (<div className='users-page'>
         {error && <p className='error-msg'>{error}</p>}
-        {users.map(user => (
-            <div key={user.id} className='user-container'>
-                <div className='user-info'>
-                    <p>ID: {user.id}</p>
-                    <p>${user.firstName} ${user.lastName}</p>
-                    <p>ROLE: {user.role}</p>
+        <div className='users-header'>
+            <p className='user-cell'>ID</p>
+            <p className='user-cell-client'>Клиент</p>
+            <p className='user-cell-email'>Email</p>
+            <p className='user-cell-role'>ROLE</p>
+            <p className='user-cell-date'>Дата создания</p>
+            <p className='user-cell-update'>Дата обновления</p>
+        </div>
+        <div className='users'>
+            {users.map(user => (
+                <div key={user.id} className='user-container'>
+                    <p className='user-cell'>ID: {user.id}</p>
+                    <p className='user-cell-client'>${user.firstName} ${user.lastName}</p>
+                    <p className='user-cell-email'>{user.email}</p>
+                    <p className='user-cell-role'>{user.role}</p>
+                    <p className='user-cell-date'>{formatDateFromArray(user.createdAt)}</p>
+                    <p className='user-cell-update'>{user.updatedAt ? formatDateFromArray(user.updatedAt): 'не был'}</p>
                 </div>
-                <p>Почта: {user.email}</p>
-                <div className='account-info'>
-                    <p>Создан: {formatDateFromArray(user.createdAt)}</p>
-                    <p>Обновлен: {user.updatedAt ? formatDateFromArray(user.updatedAt): 'не был'}</p>
-                </div>
-            </div>
-        ))}
+            ))}
+        </div>
     </div>)
 }
 export default Users;
