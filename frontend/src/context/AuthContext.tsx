@@ -110,6 +110,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const logIn = (authData: AuthData) => {
         setIsLoggedIn(true);
         setUser(authData.user);
+        setAccessTokenState(authData.accessToken); // <-- Прямое обновление состояния
         setToken(authData.accessToken);
         // Помечаем, что сессия создана (сервер поставил refresh cookie)
         markSessionPresent();
